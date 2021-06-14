@@ -21,6 +21,15 @@ Flags:
   ...
 ```
 
+The most commonly set environment variables are:
+
+```
+MAGDA_HOST=magda.example.com
+MAGDA_AUTH_ID=6a7...
+MAGDA_AUTH_KEY=GL...=
+MAGDA_TENANT_ID=ab...
+```
+
 Like many cli tools we are following the `command sub-command` pattern. For instance, the following will show (read) the content of a record:
 
 ```
