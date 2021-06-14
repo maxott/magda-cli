@@ -22,7 +22,7 @@ func main() {
 }
 
 var (
-	app = kingpin.New("magda", "Managing records & schemas in Magda.")
+	app = kingpin.New("magda-cli", "Managing records & schemas in Magda.")
 
 	host        = app.Flag("host", "DNS name/IP of Magda host [MAGDA_HOST]").Short('H').Envar("MAGDA_HOST").String()
 	tenantID    = app.Flag("tenantID", "Tenant ID [TENANT_ID]").Envar("TENANT_ID").String()
