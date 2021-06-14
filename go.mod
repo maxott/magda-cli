@@ -1,4 +1,4 @@
-module data61.csiro.au/magda/magda
+module github.com/maxott/magda-cli
 
 go 1.16
 
