@@ -6,7 +6,7 @@ Magda has an extensive [REST API](https://demo.dev.magda.io/api/v0/apidocs/index
 
 ## Usage
 
-Simply type `magda-cli -h` for a listing of the supported commands, or `magda-cli --help-man | nroff -man | more` for a more detailed description.
+Simply type `magda-cli -h` for a listing of the supported commands, or `magda-cli --help-man | nroff -man | more` for a more [detailed description](./man.md).
 
 Some of the common information, like `--host` will be read from environment variables when they are set. Check for square bracketed names in the help text, like `MAGDA_HOST` for the `--host` flag:
 
