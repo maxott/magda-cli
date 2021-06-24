@@ -4,6 +4,14 @@
 
 Magda has an extensive [REST API](https://demo.dev.magda.io/api/v0/apidocs/index.html) and a rich web-based user interface. However, to support simple data operation from the command line (and to learn golang), I wrote this simple command-line tool. It only covers the subset of the Magda API I have been using. However, I'm mor than happy to receive pull requests to extend it's functionality or fix bugs.
 
+## Install
+
+Right now, we don't provide pre-compiled executable, but if you have [go installed](https://golang.org/doc/install), you can easily build & install it with:
+
+```
+go install github.com/maxott/magda-cli@latest
+```
+
 ## Usage
 
 Simply type `magda-cli -h` for a listing of the supported commands, or `magda-cli --help-man | nroff -man | more` for a more [detailed description](./man.md).
@@ -66,5 +74,34 @@ This is my first golang program so I'm still trying to work out on how to best d
 go mod tidy
 go build .
 go install
+```
+
+## Building distributions
+
+We are using [GoReleaser](https://goreleaser.com). 
+
+To quote from the [manual](https://goreleaser.com/quick-start/): GoReleaser will use the latest Git tag of your repository. Create a tag and push it to GitHub:
+
+```
+git tag -a v0.1.0 -m "First release"
+git push origin v0.1.0
+```
+
+To deploy releases, we also need a `GITHUB_TOKEN` environment variable, which should contain a valid GitHub token with the `repo` scope. You can create the token [here](https://github.com/settings/tokens/new).
+
+```
+export GITHUB_TOKEN="YOUR_GH_TOKEN"
+```
+
+Now you can run GoReleaser at the root of your repository:
+
+```
+goreleaser release
+```
+
+If you don't want to create a tag yet, you can also run GoReleaser without publishing based on the latest commit by using the `--snapshot` flag:
+
+```
+goreleaser --snapshot --skip-publish --rm-dist
 ```
 
