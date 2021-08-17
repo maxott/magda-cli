@@ -17,6 +17,7 @@ type Adapter interface {
 	Get(path string) (JsonPayload, error)
 	Post(path string, body io.Reader) (JsonPayload, error)
 	Put(path string, body io.Reader) (JsonPayload, error)
+	Patch(path string, body io.Reader) (JsonPayload, error)
 	Delete(path string) (JsonPayload, error)
 
 	SkipGateway() bool // experimental!
@@ -122,6 +123,10 @@ func (a restAdapter) Post(path string, body io.Reader) (JsonPayload, error) {
 
 func (a restAdapter) Put(path string, body io.Reader) (JsonPayload, error) {
 	return connect("PUT", path, body, &a.ctxt)
+}
+
+func (a restAdapter) Patch(path string, body io.Reader) (JsonPayload, error) {
+	return connect("PATCH", path, body, &a.ctxt)
 }
 
 func (a restAdapter) Delete(path string) (JsonPayload, error) {

@@ -82,16 +82,15 @@ type CreateCmd struct {
 type Aspects map[string]map[string]interface{}
 
 func CreateRaw(cmd *CreateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
-	r := *cmd
-	if r.Id == "" {
-		r.Id = uuid.New().String()
+	if (*cmd).Id == "" {
+		(*cmd).Id = uuid.New().String()
 	}
 
-	body, err := json.MarshalIndent(r, "", "  ")
+	body, err := json.MarshalIndent(*cmd, "", "  ")
 	if err != nil {
 		return nil, fmt.Errorf("error marshalling body. - %s", err)
 	}
-	// fmt.Printf("RECORD %s\n", body)
+  // fmt.Printf("RECORD %+v - %s\n", cmd, body)
 
 	path := recordPath(nil, adpt)
 	return (*adpt).Post(path, bytes.NewReader(body))
@@ -143,6 +142,23 @@ func UpdateRaw(cmd *UpdateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, erro
 		return nil, fmt.Errorf("error marshalling body. - %s", err)
 	}
 	return (*adpt).Put(path, bytes.NewReader(body))
+}
+
+/**** PATCH ASPECT ********/
+
+type PatchAspectCmd struct {
+	Id         string
+	Aspect     string
+	Patch      []interface{}
+}
+
+func PatchAspectRaw(cmd *PatchAspectCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+	path := recordPath(&cmd.Id, adpt) + "/aspects/" + cmd.Aspect
+	body, err := json.MarshalIndent(cmd.Patch, "", "  ")
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling body. - %s", err)
+	}
+	return (*adpt).Patch(path, bytes.NewReader(body))
 }
 
 /**** DELETE ****/
