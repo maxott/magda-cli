@@ -68,7 +68,7 @@ func cliRecordCreate(topCmd *kingpin.CmdClause) {
 			Id: r.Id, Name: r.Name, Aspects: r.Aspects, SourceTag: r.SourceTag,
 		}
 		if _, err := record.CreateRaw(&cmd, Adapter()); err == nil {
-			fmt.Printf("Successfully create record '%s'\n", r.Id)
+			fmt.Printf("Successfully create record '%s'\n", cmd.Id)
 			return nil
 		} else {
 			return err

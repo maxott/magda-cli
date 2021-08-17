@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "title": "Artefacts consumed by order",
+  "description": "Record of all artefacts requested by order.",
+  "required": [],
+  "properties": {
+    "requests": {
+      "title": "HTTP requests made by services associated with this order",
+      "type": "array",
+      "items": {
+        "ts": {
+          "title": "Timestamp in unix time",
+          "type": "number"
+        },
+        "orderID": {
+          "title": "ID of related order",
+          "type": "string"
+        },
+        "method": {
+          "title": "HTTP Method",
+          "type": "string"
+        },
+        "host": {
+          "title": "Name of host contacted",
+          "type": "string"
+        },
+        "uri": {
+          "title": "URI called",
+          "type": "string",
+          "format": "url"
+        },
+        "status": {
+          "title": "HTTP status or reply",
+          "type": "number"
+        },
+        "size": {
+          "title": "Size of downloaded asset",
+          "type": "number"
+        },
+        "duration": {
+          "title": "Duration of HTTP request",
+          "type": "number"
+        },
+        "contentType": {
+          "title": "Name of host contacted",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,17 @@
+[
+
+  {"op": "remove", "path": "/level"},
+  {"op": "remove", "path": "/logger"},
+  {"op": "remove", "path": "/msg"},
+  {"op": "remove", "path": "/$schema"},
+  {"op": "remove", "path": "/common_log"},
+
+  {"op": "move", "from": "/$source", "path": "/orderID"},
+  {"op": "move", "from": "/request/method", "path": "/method"},
+  {"op": "move", "from": "/request/host", "path": "/host"},
+  {"op": "move", "from": "/request/uri", "path": "/uri"},
+  {"op": "remove", "path": "/request"},
+
+  {"op": "move", "from": "/resp_headers/Content-Type/0", "path": "/contentType"},
+  {"op": "remove", "path": "/resp_headers"}
+]
