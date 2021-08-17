@@ -44,7 +44,7 @@ func cliRecordList(topCmd *kingpin.CmdClause) {
 	c.Flag("limit", "The maximumm number of records to retrieve").
 		Short('l').
 		IntVar(&r.Limit)
-	c.Flag("pageToken", "Token that identifies the start of a page of results").
+	c.Flag("page-token", "Token that identifies the start of a page of results").
 		Short('t').
 		StringVar(&r.PageToken)
 }
@@ -85,10 +85,10 @@ func cliRecordCreate(topCmd *kingpin.CmdClause) {
 }
 
 func cliAddAspectFlags(r *CreateCmd, c *kingpin.CmdClause) {
-	c.Flag("aspectName", "Name of aspect to add (requires --aspectFile)").
+	c.Flag("aspect-name", "Name of aspect to add (requires --aspectFile)").
 		Short('a').
 		StringVar(&r.AspectName)
-	c.Flag("aspectFile", "File containing aspect data").
+	c.Flag("aspect-file", "File containing aspect data").
 		Short('f').
 		ExistingFileVar(&r.AspectFile)
 }
@@ -97,10 +97,10 @@ func addAspects(r *CreateCmd) {
 	r.Aspects = record.Aspects{}
 	if r.AspectName != "" || r.AspectFile != "" {
 		if r.AspectName == "" {
-			App().Fatalf("required flag --aspectNmae not provided, try --help")
+			App().Fatalf("required flag --aspect-name not provided, try --help")
 		}
 		if r.AspectFile == "" {
-			App().Fatalf("required flag --aspectFile not provided, try --help")
+			App().Fatalf("required flag --aspect-file not provided, try --help")
 		}
 		adata, err := adapter.LoadJsonFromFile(r.AspectFile)
 		if err != nil {
@@ -186,7 +186,7 @@ func cliRecordHistory(topCmd *kingpin.CmdClause) {
 		Short('i').
 		Required().
 		StringVar(&r.Id)
-	c.Flag("event-id", "Only show event wiht event-id").
+	c.Flag("event-id", "Only show event with event-id").
 		Short('e').
 		StringVar(&r.EventId)
 	c.Flag("offset", "Index of first record retrieved").
@@ -195,7 +195,7 @@ func cliRecordHistory(topCmd *kingpin.CmdClause) {
 	c.Flag("limit", "The maximumm number of records to retrieve").
 		Short('l').
 		IntVar(&r.Limit)
-	c.Flag("pageToken", "Token that identifies the start of a page of results").
+	c.Flag("page-token", "Token that identifies the start of a page of results").
 		Short('t').
 		StringVar(&r.PageToken)
 }

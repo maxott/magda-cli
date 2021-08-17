@@ -1,0 +1,21 @@
+{
+  "id": "DDM1fFcwJj",
+  "serviceName": "FFDI",
+  "serviceProvider": {
+    "name": "CSIRO"
+  },
+  "orderedAt": "2021-06-11T01:59:35.964Z",
+  "status": "pending",
+  "parameters": [
+    {
+      "name": "boundary-north",
+      "value": -10.3,
+      "ptype": "number"
+    },
+    {
+      "name": "boundary-east",
+      "value": 50.6,
+      "ptype": "number"
+    }
+  ]
+}

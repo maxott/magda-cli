@@ -72,7 +72,7 @@ func UpdateRaw(cmd *UpdateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, erro
 	if body, err := json.MarshalIndent(r, "", "  "); err != nil {
 		return nil, err
 	} else {
-		path := aspectPath(nil, adpt)
+		// path := aspectPath(nil, adpt)
 		return (*adpt).Put(path, bytes.NewReader(body))
 	}
 }

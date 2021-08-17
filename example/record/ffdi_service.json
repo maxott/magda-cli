@@ -1,0 +1,15 @@
+{
+  "id": "S-0001",
+  "cover": "/assets/ffdi.png",
+  "name": "Forest Fire Danger Index (FFDI)",
+  "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, \nsed do eiusmod tempor incididunt ut labore et dolore magna \naliqua. Quis hendrerit dolor magna eget est lorem ipsum \ndolor sit. Feugiat nisl pretium fusce id velit\nut tortor pretium viverra. Lorem ipsum dolor sit amet \nconsectetur. Purus sit amet volutpat consequat mauris \nnunc congue nisi vitae. Nibh venenatis cras sed felis \neget velit aliquet sagittis. Massa eget egestas purus \nviverra accumsan in. \n\nCursus turpis massa tincidunt dui \nut ornare lectus sit amet. Lorem donec massa sapien faucibus \net molestie ac feugiat. Id interdum velit laoreet id donec.    \nEuismod lacinia at quis risus sed vulputate odio ut. Urna nunc \nid cursus metus.",
+  "serviceProvider": {
+    "photo": "https://assets.maccarianagency.com/the-front/photos/people/veronica-adams.jpg",
+    "name": "CSIRO",
+    "description": "As Australia's national science agency and innovation catalyst,\nwe solve the greatest challenges through innovative science and technology."
+  },
+  "parameters": [
+    { "label": "Boundary North", "name": "boundary-north", "ptype": "number" },
+    { "label": "Boundary East", "name": "boundary-east", "ptype": "number" }
+  ]
+}

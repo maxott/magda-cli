@@ -2,13 +2,14 @@
 package adapter
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/golang-jwt/jwt"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"io/ioutil"
-	"os"
-	"encoding/json"
-	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -26,6 +27,7 @@ type ConnectionCtxt struct {
 	TenantID    string
 	AuthID      string
 	AuthKey     string
+	JwtToken    string
 	UseTLS      bool
 	SkipGateway bool
 }
@@ -37,6 +39,14 @@ type JsonPayload interface {
 	AsObject() map[string]interface{}
 	AsArray() []interface{}
 	AsBytes() []byte
+}
+
+func CreateJwtToken(userID *string, signingSecret *string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userId": *userID,
+		"iat":    time.Now().Unix(),
+	})
+	return token.SignedString([]byte(*signingSecret))
 }
 
 func LoadJsonFromFile(fileName string) (JsonPayload, error) {
@@ -54,7 +64,7 @@ func LoadJsonFromFile(fileName string) (JsonPayload, error) {
 }
 
 func ReplyPrinter(pld JsonPayload, err error) error {
-	if (err != nil) {
+	if err != nil {
 		return err
 	}
 
@@ -76,7 +86,7 @@ func ReplyPrinter(pld JsonPayload, err error) error {
 
 type JsonObjPayload struct {
 	payload map[string]interface{}
-	bytes []byte
+	bytes   []byte
 }
 
 func (p JsonObjPayload) IsObject() bool                   { return true }
@@ -86,7 +96,7 @@ func (p JsonObjPayload) AsBytes() []byte                  { return p.bytes }
 
 type JsonArrPayload struct {
 	payload []interface{}
-	bytes []byte
+	bytes   []byte
 }
 
 func (JsonArrPayload) IsObject() bool                     { return false }
@@ -153,8 +163,15 @@ func connect(
 	if ctxt.AuthKey != "" {
 		req.Header.Set("X-Magda-API-Key", ctxt.AuthKey)
 	}
-	client := &http.Client{Timeout: time.Second * 10}
+	if ctxt.JwtToken != "" {
+		req.Header.Set("X-Magda-Session", ctxt.JwtToken)
+	}
 
+	client := &http.Client{Timeout: time.Second * 10}
+	log.WithFields(log.Fields{
+		"method": method,
+		"path":   path,
+	}).Info("Calling magda")
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Error reading response. ", err)

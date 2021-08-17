@@ -1,0 +1,15 @@
+{
+  "cse-service": {
+    "id": "S-0002",
+    "cover": "/assets/flooding.png",
+    "name": "Something about flooding",
+    "description": "Nunc congue nisi vitae suscipit. Nibh praesent tristique magna sit amet purus. Lectus proin nibh nisl \ncondimentum id venenatis a. Odio ut sem nulla pharetra diam sit amet. Vel turpis nunc eget lorem dolor\nsed viverra. Suscipit tellus mauris a diam. Quam vulputate dignissim suspendisse in est. Aliquet \nporttitor lacus luctus accumsan tortor posuere. Eleifend quam adipiscing vitae proin sagittis \nnisl rhoncus mattis rhoncus. Sed id semper risus in hendrerit.\n\nSemper quis lectus nulla at volutpat diam ut venenatis tellus. Elit ullamcorper dignissim cras tincidunt \nlobortis feugiat. Dolor magna eget est lorem. Praesent semper feugiat nibh sed. Eget velit aliquet sagittis \nid. Molestie at elementum eu facilisis sed odio morbi quis. Aliquam vestibulum morbi blandit cursus risus. \nVel eros donec ac odio tempor. In mollis nunc sed id semper risus in hendrerit gravida. \nId neque aliquam vestibulum morbi blandit cursus risus at.",
+    "serviceProvider": {
+      "name": "Climate Co",
+      "description": "Venenatis tellus in metus vulputate eu scelerisque felis imperdiet.\nUrna nunc id cursus metus aliquam eleifend mi.\nSed blandit libero volutpat sed cras ornare. Sed risus pretium quam vulputate dignissim."
+    },
+    "parameters": [
+      { "label": "Risk Level", "name": "risk-level", "ptype": "number" }
+    ]
+  }
+}

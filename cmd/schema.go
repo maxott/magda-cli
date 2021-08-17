@@ -62,7 +62,7 @@ func cliAddSchemaCUFlags(r *SchemaCreate, c *kingpin.CmdClause) {
 		Short('i').
 		Required().
 		StringVar(&r.Id)
-	c.Flag("schemaFile", "File containing schema/aspect decalration").
+	c.Flag("schema-file", "File containing schema/aspect decalration").
 		Short('f').
 		Required().
 		ExistingFileVar(&r.SchemaFile)
