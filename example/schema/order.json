@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "title": "CSE Marketplace Order",
+  "description": "Record for an order placed on the CSE Marketplace.",
+  "required": ["id", "serviceName"],
+  "properties": {
+    "id": {
+      "title": "Service ID",
+      "type": "string"
+    },
+    "serviceName": {
+      "title": "Name of service",
+      "type": "string"
+    },
+    "orderedAt": {
+      "title": "Date and time of order",
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "title": "Status of order",
+      "type": "string"
+    },
+    "serviceProvider": {
+      "title": "Info about the provider of the service",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "Name of service",
+          "type": "string"
+        },
+        "description": {
+          "title": "Name of service",
+          "type": "string"
+        },
+        "logo": {
+          "title": "Logo of provider",
+          "type": "string",
+          "format": "url"
+        }
+      }
+    },
+    "paramters": {
+      "title": "Optional customisation paramters offered by the service",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name of paramter",
+            "type": "string"
+          },
+          "ptype": {
+            "title": "Type of paramter value",
+            "type": "string"
+          },
+          "value": {
+            "title": "Value of paramter",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

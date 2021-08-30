@@ -19,9 +19,9 @@ func init() {
 /**** LIST ****/
 
 func cliSchemaList(topCmd *kingpin.CmdClause) {
-	cmd := &schema.ListCmd{}
+	cmd := &schema.ListRequest{}
 	topCmd.Command("list", "List all aspect schemas").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(schema.ListRaw(cmd, Adapter()))
+		return adapter.ReplyPrinter(schema.ListRaw(cmd, Adapter(), Logger()))
 	})
 }
 
@@ -39,10 +39,10 @@ func cliSchemaCreate(topCmd *kingpin.CmdClause) {
 		if js, err := adapter.LoadJsonFromFile(r.SchemaFile); err != nil {
 			return fmt.Errorf("failed to load & verify '%s' - %s", r.SchemaFile, err)
 		} else {
-			cmd := schema.CreateCmd{
+			cmd := schema.CreateRequest{
 				Id: r.Id, Name: r.Name, Schema: js.AsObject(),
 			}
-			if _, err := schema.CreateRaw(&cmd, Adapter()); err == nil {
+			if _, err := schema.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
 				fmt.Printf("Successfully create schema '%s'\n", r.Id)
 				return nil
 			} else {
@@ -62,7 +62,7 @@ func cliAddSchemaCUFlags(r *SchemaCreate, c *kingpin.CmdClause) {
 		Short('i').
 		Required().
 		StringVar(&r.Id)
-	c.Flag("schemaFile", "File containing schema/aspect decalration").
+	c.Flag("schema-file", "File containing schema/aspect decalration").
 		Short('f').
 		Required().
 		ExistingFileVar(&r.SchemaFile)
@@ -71,9 +71,9 @@ func cliAddSchemaCUFlags(r *SchemaCreate, c *kingpin.CmdClause) {
 /**** READ ****/
 
 func cliSchemaRead(topCmd *kingpin.CmdClause) {
-	r := &schema.ReadCmd{}
+	r := &schema.ReadRequest{}
 	c := topCmd.Command("read", "Read the content of a schema").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(schema.ReadRaw(r, Adapter()))
+		return adapter.ReplyPrinter(schema.ReadRaw(r, Adapter(), Logger()))
 	})
 	c.Flag("id", "Record ID").
 		Short('i').
@@ -89,10 +89,10 @@ func cliSchemaUpdate(topCmd *kingpin.CmdClause) {
 		if js, err := adapter.LoadJsonFromFile(r.SchemaFile); err != nil {
 			return fmt.Errorf("failed to load & verify '%s' - %s", r.SchemaFile, err)
 		} else {
-			cmd := schema.UpdateCmd{
+			cmd := schema.UpdateRequest{
 				Id: r.Id, Name: r.Name, Schema: js.AsObject(),
 			}
-			if _, err := schema.UpdateRaw(&cmd, Adapter()); err == nil {
+			if _, err := schema.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
 				fmt.Printf("Successfully updated schema '%s'\n", r.Id)
 				return nil
 			} else {

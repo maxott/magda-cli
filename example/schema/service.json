@@ -1,0 +1,74 @@
+{
+  "id": "cse-service",
+  "name": "CSE MArketplace Service",
+  "jsonSchema": {
+    "$schema": "http://json-schema.org/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "title": "Description of service offered on the CSE Marketplace",
+    "description": "Minimal information about a dataset provided by a THREDDS server.",
+    "properties": {
+      "id": {
+        "title": "Service ID",
+        "type": "string"
+      },
+      "name": {
+        "title": "Name of service",
+        "type": "string"
+      },
+      "cover": {
+        "title": "Cover picture",
+        "type": "string",
+        "format": "url"
+      },
+      "serviceProvider": {
+        "title": "Info about the provider of the service",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "Name of service",
+            "type": "string"
+          },
+          "description": {
+            "title": "Name of service",
+            "type": "string"
+          },
+          "logo": {
+            "title": "Logo of provider",
+            "type": "string",
+            "format": "url"
+          }
+        }
+      },
+      "paramters": {
+        "title": "Optional cutomisation paramters offered by the service",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "Name of paramter",
+              "type": "string"
+            },
+            "label": {
+              "title": "Name of paramter used in form",
+              "type": "string"
+            },
+            "ptype": {
+              "title": "Type of paramter value",
+              "type": "string"
+            },
+            "placeHolder": {
+              "title": "Placeholder text used in form",
+              "type": "string"
+            },
+            "helperText": {
+              "title": "Helper text used in form",
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

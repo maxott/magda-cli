@@ -2,44 +2,35 @@
 package adapter
 
 import (
-	"fmt"
+	"encoding/json"
+	"github.com/golang-jwt/jwt"
 	"io"
 	"io/ioutil"
-	"os"
-	"encoding/json"
-	"log"
 	"net/http"
 	"time"
+
+	"github.com/maxott/magda-cli/pkg/log"
 )
-
-type Adapter interface {
-	Get(path string) (JsonPayload, error)
-	Post(path string, body io.Reader) (JsonPayload, error)
-	Put(path string, body io.Reader) (JsonPayload, error)
-	Delete(path string) (JsonPayload, error)
-
-	SkipGateway() bool // experimental!
-}
 
 type ConnectionCtxt struct {
 	Host        string
 	TenantID    string
 	AuthID      string
 	AuthKey     string
+	JwtToken    string
 	UseTLS      bool
 	SkipGateway bool
 }
 
-// type ReplyHandlerF func(JsonPayload) error
-
-type JsonPayload interface {
-	IsObject() bool
-	AsObject() map[string]interface{}
-	AsArray() []interface{}
-	AsBytes() []byte
+func CreateJwtToken(userID *string, signingSecret *string) (string, error) {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"userId": *userID,
+		"iat":    time.Now().Unix(),
+	})
+	return token.SignedString([]byte(*signingSecret))
 }
 
-func LoadJsonFromFile(fileName string) (JsonPayload, error) {
+func LoadJsonFromFile(fileName string) (Payload, error) {
 	data, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, err
@@ -53,47 +44,6 @@ func LoadJsonFromFile(fileName string) (JsonPayload, error) {
 	return JsonObjPayload{m, data}, nil
 }
 
-func ReplyPrinter(pld JsonPayload, err error) error {
-	if (err != nil) {
-		return err
-	}
-
-	var b []byte
-	var err2 error
-	if pld.IsObject() {
-		b, err2 = json.MarshalIndent(pld.AsObject(), "", "  ")
-	}
-	if !pld.IsObject() {
-		b, err2 = json.MarshalIndent(pld.AsArray(), "", "  ")
-	}
-	if err2 != nil {
-		return err2
-	} else {
-		fmt.Printf("%s\n", b)
-		return nil
-	}
-}
-
-type JsonObjPayload struct {
-	payload map[string]interface{}
-	bytes []byte
-}
-
-func (p JsonObjPayload) IsObject() bool                   { return true }
-func (p JsonObjPayload) AsObject() map[string]interface{} { return p.payload }
-func (p JsonObjPayload) AsArray() []interface{}           { return []interface{}{p.payload} }
-func (p JsonObjPayload) AsBytes() []byte                  { return p.bytes }
-
-type JsonArrPayload struct {
-	payload []interface{}
-	bytes []byte
-}
-
-func (JsonArrPayload) IsObject() bool                     { return false }
-func (p JsonArrPayload) AsObject() map[string]interface{} { return nil }
-func (p JsonArrPayload) AsArray() []interface{}           { return p.payload }
-func (p JsonArrPayload) AsBytes() []byte                  { return p.bytes }
-
 func RestAdapter(ctxt ConnectionCtxt) Adapter {
 	return restAdapter{ctxt}
 }
@@ -102,20 +52,24 @@ type restAdapter struct {
 	ctxt ConnectionCtxt
 }
 
-func (a restAdapter) Get(path string) (JsonPayload, error) {
-	return connect("GET", path, nil, &a.ctxt)
+func (a restAdapter) Get(path string, logger log.Logger) (Payload, error) {
+	return connect("GET", path, nil, &a.ctxt, logger)
 }
 
-func (a restAdapter) Post(path string, body io.Reader) (JsonPayload, error) {
-	return connect("POST", path, body, &a.ctxt)
+func (a restAdapter) Post(path string, body io.Reader, logger log.Logger) (Payload, error) {
+	return connect("POST", path, body, &a.ctxt, logger)
 }
 
-func (a restAdapter) Put(path string, body io.Reader) (JsonPayload, error) {
-	return connect("PUT", path, body, &a.ctxt)
+func (a restAdapter) Put(path string, body io.Reader, logger log.Logger) (Payload, error) {
+	return connect("PUT", path, body, &a.ctxt, logger)
 }
 
-func (a restAdapter) Delete(path string) (JsonPayload, error) {
-	return connect("DELETE", path, nil, &a.ctxt)
+func (a restAdapter) Patch(path string, body io.Reader, logger log.Logger) (Payload, error) {
+	return connect("PATCH", path, body, &a.ctxt, logger)
+}
+
+func (a restAdapter) Delete(path string, logger log.Logger) (Payload, error) {
+	return connect("DELETE", path, nil, &a.ctxt, logger)
 }
 
 func (a restAdapter) SkipGateway() bool {
@@ -127,9 +81,11 @@ func connect(
 	path string,
 	body io.Reader,
 	ctxt *ConnectionCtxt,
-) (JsonPayload, error) {
+	logger log.Logger,
+) (Payload, error) {
+	logger = logger.With("method", method).With("path", path)
 	if ctxt.Host == "" {
-		log.Fatal("required flag --host not provided, try --help")
+		return nil, logger.Error(nil, "required flag --host not provided, try --help")
 	}
 	protocol := "http://"
 	if ctxt.UseTLS {
@@ -139,7 +95,7 @@ func connect(
 
 	req, err := http.NewRequest(method, path, body)
 	if err != nil {
-		log.Fatal("Error reading request. ", err)
+		return nil, logger.Error(err, "Error reading request. ")
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -153,43 +109,31 @@ func connect(
 	if ctxt.AuthKey != "" {
 		req.Header.Set("X-Magda-API-Key", ctxt.AuthKey)
 	}
-	client := &http.Client{Timeout: time.Second * 10}
+	if ctxt.JwtToken != "" {
+		req.Header.Set("X-Magda-Session", ctxt.JwtToken)
+	}
 
+	client := &http.Client{Timeout: time.Second * 10}
+	logger.Info("Calling magda registry")
 	resp, err := client.Do(req)
 	if err != nil {
-		log.Fatal("Error reading response. ", err)
+		return nil, logger.Error(err, "Error reading response.")
 	}
 	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatal("Error reading body. ", err)
+		return nil, logger.Error(err, "Error reading body. ")
 	}
 
 	if resp.StatusCode >= 300 {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", resp.Status)
 		if len(respBody) > 0 {
-			fmt.Fprintf(os.Stderr, "%s\n", respBody)
+			logger = logger.With("body", respBody)
 		}
-		os.Exit(1)
+		return nil, logger.With("statusCode", resp.StatusCode).Error(nil, "Error response")
 	}
-
-	return toJSON(respBody)
+	contentType := resp.Header.Get("Content-Type") 
+	return ToPayload(respBody, contentType, logger)
 }
 
-func toJSON(body []byte) (JsonPayload, error) {
-	var f interface{}
-	err := json.Unmarshal(body, &f)
-	if err != nil {
-		return nil, err
-	}
 
-	switch m := f.(type) {
-	case []interface{}:
-		return JsonArrPayload{m, body}, nil
-	case map[string]interface{}:
-		return JsonObjPayload{m, body}, nil
-	default:
-		return nil, fmt.Errorf("unknown json type in body")
-	}
-}
