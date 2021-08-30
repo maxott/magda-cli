@@ -3,18 +3,19 @@ package record
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	//"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/google/uuid"
 	"github.com/maxott/magda-cli/pkg/adapter"
+	"github.com/maxott/magda-cli/pkg/log"
 )
 
 /**** LIST ****/
 
-type ListCmd struct {
+type ListRequest struct {
 	Aspects   string
 	Query     string
 	Offset    int
@@ -34,8 +35,8 @@ type ListResult struct {
 	} `json:"records"`
 }
 
-func List(cmd *ListCmd, adpt *adapter.Adapter) (ListResult, error) {
-	pyl, err := ListRaw(cmd, adpt)
+func List(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (ListResult, error) {
+	pyl, err := ListRaw(cmd, adpt, logger)
 	if err != nil {
 		return ListResult{}, err
 	}
@@ -44,7 +45,7 @@ func List(cmd *ListCmd, adpt *adapter.Adapter) (ListResult, error) {
 	return res, nil
 }
 
-func ListRaw(cmd *ListCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := recordPath(nil, adpt)
 
 	q := []string{}
@@ -67,44 +68,45 @@ func ListRaw(cmd *ListCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
 		path = path + "?" + strings.Join(q, "&")
 	}
 	//fmt.Printf("PATH: %s\n", path)
-	return (*adpt).Get(path)
+	return (*adpt).Get(path, logger)
 }
 
 /**** CREATE ****/
 
-type CreateCmd struct {
+type CreateRequest struct {
 	Id        string  `json:"id"`
 	Name      string  `json:"name"`
 	Aspects   Aspects `json:"aspects"`
 	SourceTag string  `json:"sourceTag,omitempty"`
 }
 
-type Aspects map[string]map[string]interface{}
+type Aspects map[string]Aspect
+type Aspect map[string]interface{}
 
-func CreateRaw(cmd *CreateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	if (*cmd).Id == "" {
 		(*cmd).Id = uuid.New().String()
 	}
 
 	body, err := json.MarshalIndent(*cmd, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling body. - %s", err)
+		return nil, logger.Errorf(err, "error marshalling body.")
 	}
   // fmt.Printf("RECORD %+v - %s\n", cmd, body)
 
 	path := recordPath(nil, adpt)
-	return (*adpt).Post(path, bytes.NewReader(body))
+	return (*adpt).Post(path, bytes.NewReader(body), logger)
 }
 
 /**** READ ****/
 
-type ReadCmd struct {
+type ReadRequest struct {
 	Id         string
 	AddAspects string
 	Aspect     string
 }
 
-func ReadRaw(cmd *ReadCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt)
 	if cmd.AddAspects != "" {
 		path = path + "?aspect=" + cmd.AddAspects
@@ -114,71 +116,71 @@ func ReadRaw(cmd *ReadCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
 		// display summary
 		path = recordPath(nil, adpt) + "/summary/" + cmd.Id
 	}
-	return (*adpt).Get(path)
+	return (*adpt).Get(path, logger)
 }
 
 /**** UPDATE ****/
 
-type UpdateCmd = CreateCmd
+type UpdateRequest = CreateRequest
 
-func UpdateRaw(cmd *UpdateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	path := recordPath(&r.Id, adpt)
 	if r.Name == "" {
 		// get current 'name' first as it is required
-		pld, err := (*adpt).Get(path)
+		pld, err := (*adpt).Get(path, logger)
 		if err != nil {
 			return nil, err
 		}
 		obj := pld.AsObject()
 		if obj == nil {
-			return nil, fmt.Errorf("no record body found")
+			return nil, logger.Error(nil, "no record body found")
 		}
 		r.Name = obj["name"].(string)
 	}
 	body, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling body. - %s", err)
+		return nil, logger.Errorf(err, "error marshalling body.")
 	}
-	return (*adpt).Put(path, bytes.NewReader(body))
+	return (*adpt).Put(path, bytes.NewReader(body), logger)
 }
 
 /**** PATCH ASPECT ********/
 
-type PatchAspectCmd struct {
+type PatchAspectRequest struct {
 	Id         string
 	Aspect     string
 	Patch      []interface{}
 }
 
-func PatchAspectRaw(cmd *PatchAspectCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func PatchAspectRaw(cmd *PatchAspectRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt) + "/aspects/" + cmd.Aspect
 	body, err := json.MarshalIndent(cmd.Patch, "", "  ")
 	if err != nil {
-		return nil, fmt.Errorf("error marshalling body. - %s", err)
+		return nil, logger.Errorf(err, "error marshalling body")
 	}
-	return (*adpt).Patch(path, bytes.NewReader(body))
+	return (*adpt).Patch(path, bytes.NewReader(body), logger)
 }
 
 /**** DELETE ****/
 
-type DeleteCmd struct {
+type DeleteRequest struct {
 	Id         string
 	AspectName string
 }
 
-func DeleteRaw(cmd *DeleteCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt)
 	if cmd.AspectName != "" {
 		path = path + "/aspects/" + cmd.AspectName
 	}
-	return (*adpt).Delete(path)
+	return (*adpt).Delete(path, logger)
 }
 
 /**** HISTORY ****/
 
-type HistoryCmd struct {
+type HistoryRequest struct {
 	Id        string
 	EventId   string
 	Offset    int
@@ -186,7 +188,7 @@ type HistoryCmd struct {
 	PageToken string
 }
 
-func HistoryRaw(cmd *HistoryCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func HistoryRaw(cmd *HistoryRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt) + "/history"
 	if cmd.EventId != "" {
 		path = path + "/" + cmd.EventId
@@ -206,7 +208,7 @@ func HistoryRaw(cmd *HistoryCmd, adpt *adapter.Adapter) (adapter.JsonPayload, er
 		path = path + "?" + strings.Join(q, "&")
 	}
 	// fmt.Printf("PATH: %s\n", path)
-	return (*adpt).Get(path)
+	return (*adpt).Get(path, logger)
 }
 
 /**** UTILS ****/

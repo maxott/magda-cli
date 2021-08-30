@@ -3,68 +3,68 @@ package schema
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
+	"github.com/maxott/magda-cli/pkg/log"
 )
 
 /**** LIST ****/
 
-type ListCmd struct {
+type ListRequest struct {
 }
 
-func ListRaw(cmd *ListCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := aspectPath(nil, adpt)
-	return (*adpt).Get(path)
+	return (*adpt).Get(path, logger)
 }
 
 /**** CREATE ****/
 
-type CreateCmd struct {
+type CreateRequest struct {
 	Id     string                 `json:"id"`
 	Name   string                 `json:"name"`
 	Schema map[string]interface{} `json:"jsonSchema"`
 }
 
-func CreateRaw(cmd *CreateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	if body, err := json.MarshalIndent(r, "", "  "); err != nil {
 		return nil, err
 	} else {
 		path := aspectPath(nil, adpt)
-		return (*adpt).Post(path, bytes.NewReader(body))
+		return (*adpt).Post(path, bytes.NewReader(body), logger)
 	}
 }
 
 /**** READ ****/
 
-type ReadCmd struct {
+type ReadRequest struct {
 	Id string
 }
 
-func ReadRaw(cmd *ReadCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := aspectPath(&cmd.Id, adpt)
-	return (*adpt).Get(path)
+	return (*adpt).Get(path, logger)
 }
 
 /**** UPDATE ****/
 
-type UpdateCmd = CreateCmd
+type UpdateRequest = CreateRequest
 
-func UpdateRaw(cmd *UpdateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	path := aspectPath(&r.Id, adpt)
 
 	if r.Name == "" {
 		// get current 'name' first as it is required
-		if pld, err := (*adpt).Get(path); err != nil {
+		if pld, err := (*adpt).Get(path, logger); err != nil {
 			return nil, err
 		} else {
 			obj := pld.AsObject()
 			if obj == nil {
-				return nil, fmt.Errorf("no schema body found")
+				return nil, logger.Error(nil, "no schema body found")
 			}
 			r.Name = obj["name"].(string)
 		}
@@ -73,7 +73,7 @@ func UpdateRaw(cmd *UpdateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, erro
 		return nil, err
 	} else {
 		// path := aspectPath(&r.Id, adpt)
-		return (*adpt).Put(path, bytes.NewReader(body))
+		return (*adpt).Put(path, bytes.NewReader(body), logger)
 	}
 }
 

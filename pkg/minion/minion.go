@@ -3,20 +3,19 @@ package minion
 import (
 	"bytes"
 	"encoding/json"
-	log "github.com/sirupsen/logrus"
-	// "fmt"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
+	"github.com/maxott/magda-cli/pkg/log"
 )
 
 /**** LIST ****/
 
-type ListCmd struct {
+type ListRequest struct {
 }
 
-func ListRaw(cmd *ListCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := minionPath(nil, adpt)
-	return (*adpt).Get(path)
+	return (*adpt).Get(path, logger)
 }
 
 /**** CREATE ****/
@@ -69,7 +68,7 @@ var defEventTypes = []EventType{
 	PatchRecord, PatchAspectDefinition, PatchRecordAspect,
 }
 
-type CreateCmd struct {
+type CreateRequest struct {
 	Id              string
 	Url             string
 	EventTypes      []EventType
@@ -98,7 +97,7 @@ type createConfig struct {
 	Dereference              bool     `json:"dereference"`
 }
 
-func CreateRaw(cmd *CreateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	config := createConfig{
 		Aspects:                  cmd.Aspects,
 		OptionalAspects:          cmd.OptionalAspects,
@@ -128,8 +127,8 @@ func CreateRaw(cmd *CreateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, erro
 		return nil, err
 	} else {
 		path := minionPath(nil, adpt)
-		log.Info("POTS minion ", string(body))
-		return (*adpt).Post(path, bytes.NewReader(body))
+		logger.Infof("POTS minion - %s", string(body))
+		return (*adpt).Post(path, bytes.NewReader(body), logger)
 	}
 }
 
@@ -177,13 +176,13 @@ func CreateRaw(cmd *CreateCmd, adpt *adapter.Adapter) (adapter.JsonPayload, erro
 
 /**** DELETE ****/
 
-type DeleteCmd struct {
+type DeleteRequest struct {
 	Id string
 }
 
-func DeleteRaw(cmd *DeleteCmd, adpt *adapter.Adapter) (adapter.JsonPayload, error) {
+func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
 	path := minionPath(&cmd.Id, adpt)
-	return (*adpt).Delete(path)
+	return (*adpt).Delete(path, logger)
 }
 
 /**** Utils ****/
