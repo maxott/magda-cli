@@ -23,16 +23,16 @@ func init() {
 /**** LIST ****/
 
 func cliMinionList(topCmd *kingpin.CmdClause) {
-	cmd := &minion.ListCmd{}
+	cmd := &minion.ListRequest{}
 	topCmd.Command("list", "List all minion registration").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(minion.ListRaw(cmd, Adapter()))
+		return adapter.ReplyPrinter(minion.ListRaw(cmd, Adapter(), Logger()))
 	})
 }
 
 /**** CREATE ****/
 
 func cliMinionCreate(topCmd *kingpin.CmdClause) {
-	r := &minion.CreateCmd{}
+	r := &minion.CreateRequest{}
 	var aspects string
 	var optAspects string
 
@@ -41,7 +41,7 @@ func cliMinionCreate(topCmd *kingpin.CmdClause) {
 		if optAspects != "" {
 			r.OptionalAspects = strings.Split(optAspects, ",")
 		}
-		if _, err := minion.CreateRaw(r, Adapter()); err == nil {
+		if _, err := minion.CreateRaw(r, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully create minion hook '%s'\n", r.Id)
 			return nil
 		} else {
@@ -106,9 +106,9 @@ func cliMinionCreate(topCmd *kingpin.CmdClause) {
 /**** DELETE ****/
 
 func cliMinionDelete(topCmd *kingpin.CmdClause) {
-	r := &minion.DeleteCmd{}
+	r := &minion.DeleteRequest{}
 	c := topCmd.Command("delete", "Delete a minion hook").Action(func(_ *kingpin.ParseContext) error {
-		if _, err := minion.DeleteRaw(r, Adapter()); err == nil {
+		if _, err := minion.DeleteRaw(r, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully deleted hook '%s'\n", r.Id)
 			return nil
 		} else {

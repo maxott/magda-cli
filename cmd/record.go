@@ -21,7 +21,7 @@ func init() {
 /**** LIST ****/
 
 func cliRecordList(topCmd *kingpin.CmdClause) {
-	r := &record.ListCmd{Offset: -1, Limit: -1}
+	r := &record.ListRequest{Offset: -1, Limit: -1}
 	c := topCmd.Command("list", "List some records").Action(func(_ *kingpin.ParseContext) error {
 		// if rec, err := record.List(r, Adapter()); err != nil {
 		// 	return err;
@@ -30,7 +30,7 @@ func cliRecordList(topCmd *kingpin.CmdClause) {
 		// 	return nil
 		// }
 
-		return adapter.ReplyPrinter(record.ListRaw(r, Adapter()))
+		return adapter.ReplyPrinter(record.ListRaw(r, Adapter(), Logger()))
 	})
 	c.Flag("aspects", "The aspects for which to retrieve data").
 		Short('a').
@@ -64,10 +64,10 @@ func cliRecordCreate(topCmd *kingpin.CmdClause) {
 	r := &CreateCmd{}
 	c := topCmd.Command("create", "Creates a new record").Action(func(_ *kingpin.ParseContext) error {
 		addAspects(r)
-		cmd := record.CreateCmd{
+		cmd := record.CreateRequest{
 			Id: r.Id, Name: r.Name, Aspects: r.Aspects, SourceTag: r.SourceTag,
 		}
-		if _, err := record.CreateRaw(&cmd, Adapter()); err == nil {
+		if _, err := record.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully create record '%s'\n", cmd.Id)
 			return nil
 		} else {
@@ -113,9 +113,9 @@ func addAspects(r *CreateCmd) {
 /**** READ ****/
 
 func cliRecordRead(topCmd *kingpin.CmdClause) {
-	r := &record.ReadCmd{}
+	r := &record.ReadRequest{}
 	c := topCmd.Command("read", "Read the content of a record").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(record.ReadRaw(r, Adapter()))
+		return adapter.ReplyPrinter(record.ReadRaw(r, Adapter(), Logger()))
 	})
 	c.Flag("id", "Record ID").
 		Short('i').
@@ -134,10 +134,10 @@ func cliRecordUpdate(topCmd *kingpin.CmdClause) {
 	r := &CreateCmd{}
 	c := topCmd.Command("update", "Update an existing record").Action(func(_ *kingpin.ParseContext) error {
 		addAspects(r)
-		cmd := record.UpdateCmd{
+		cmd := record.UpdateRequest{
 			Id: r.Id, Name: r.Name, Aspects: r.Aspects, SourceTag: r.SourceTag,
 		}
-		if _, err := record.UpdateRaw(&cmd, Adapter()); err == nil {
+		if _, err := record.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully updated record '%s'\n", r.Id)
 			return nil
 		} else {
@@ -157,9 +157,9 @@ func cliRecordUpdate(topCmd *kingpin.CmdClause) {
 /**** DELETE ****/
 
 func cliRecordDelete(topCmd *kingpin.CmdClause) {
-	r := &record.DeleteCmd{}
+	r := &record.DeleteRequest{}
 	c := topCmd.Command("delete", "Delete a record or one of it's aspects").Action(func(_ *kingpin.ParseContext) error {
-		if _, err := record.DeleteRaw(r, Adapter()); err == nil {
+		if _, err := record.DeleteRaw(r, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully deleted record '%s'\n", r.Id)
 			return nil
 		} else {
@@ -178,9 +178,9 @@ func cliRecordDelete(topCmd *kingpin.CmdClause) {
 /**** HISTORY ****/
 
 func cliRecordHistory(topCmd *kingpin.CmdClause) {
-	r := &record.HistoryCmd{Offset: -1, Limit: -1}
+	r := &record.HistoryRequest{Offset: -1, Limit: -1}
 	c := topCmd.Command("history", "Get a list of all events for a record").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(record.HistoryRaw(r, Adapter()))
+		return adapter.ReplyPrinter(record.HistoryRaw(r, Adapter(), Logger()))
 	})
 	c.Flag("id", "Record ID").
 		Short('i').

@@ -3,8 +3,10 @@ package cmd
 
 import (
 	"github.com/maxott/magda-cli/pkg/adapter"
-	log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
+
+	"github.com/maxott/magda-cli/pkg/log"
+	"github.com/maxott/magda-cli/pkg/log/logrus"
 )
 
 var (
@@ -20,6 +22,8 @@ var (
 	jwtSecret = app.Flag("jwt-secret", "Secret used for creating JWT token for inernal comms [MAGDA_JWT_SECRET]").Envar("MAGDA_JWT_SECRET").String()
 	jwtUser   = app.Flag("jwt-user-id", "User ID for creating JWT token for inernal comms [MAGDA_JWT_USER_ID]").Envar("MAGDA_JWT_USER_ID").String()
 	// verbose   = app.Flag("verbose", "Be chatty [MAGDA_VERBOSE]").Short('v').Envar("MAGDA_VERBOSE").Bool()
+
+	logger = logrus.NewDefaultLogger()
 )
 
 func App() *kingpin.Application {
@@ -27,7 +31,7 @@ func App() *kingpin.Application {
 }
 
 func Adapter() *adapter.Adapter {
-	jwtToken := createJwtToken()
+	jwtToken := createJwtToken(Logger())
 	adapter := adapter.RestAdapter(adapter.ConnectionCtxt{
 		Host: *host, TenantID: *tenantID, AuthID: *authID, AuthKey: *authKey, UseTLS: *useTLS,
 		SkipGateway: *skipGateway, JwtToken: jwtToken,
@@ -35,16 +39,20 @@ func Adapter() *adapter.Adapter {
 	return &adapter
 }
 
-func createJwtToken() string {
+func Logger() log.Logger {
+	return logger
+}
+
+func createJwtToken(logger log.Logger) string {
 	if *skipGateway {
 		if jwtSecret == nil || jwtUser == nil {
-			log.Fatal("When skipping gateway, 'jwt-secret' and 'jwt-user-id' are also required")
+			logger.Fatal("When skipping gateway, 'jwt-secret' and 'jwt-user-id' are also required")
 		}
 		token, err := adapter.CreateJwtToken(jwtUser, jwtSecret)
 		if err != nil {
-			log.Fatal("Error while signing JWT token - ", err)
+			logger.With("error", err).Fatal("While signing JWT token")
 		}
-		log.Info("JWT Token - ", token)
+		logger.Debugf("JWT Token - ", token)
 		return token
 	} else {
 		return ""
