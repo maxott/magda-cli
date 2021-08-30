@@ -2,19 +2,20 @@
 package main
 
 import (
-	"fmt"
 	"github.com/maxott/magda-cli/cmd"
 	"gopkg.in/alecthomas/kingpin.v2"
 	"os"
-)
+	lgrus "github.com/sirupsen/logrus"
 
-// var verbose
+	"github.com/maxott/magda-cli/pkg/log/logrus"
+)
 
 func main() {
 	app := cmd.App()
 	app.HelpFlag.Short('h')
 
 	app.Flag("verbose", "Be chatty [MAGDA_VERBOSE]").Short('v').Envar("MAGDA_VERBOSE").Action(setVerbose).Bool()
+	app.Flag("debug", "Be very chatty [MAGDA_DEBUG]").Short('d').Envar("MAGDA_DEBUG").Action(setDebug).Bool()
 
 	// app.PreAction(configLogger)
 	command, err := app.Parse(os.Args[1:])
@@ -22,10 +23,11 @@ func main() {
 }
 
 func setVerbose(c *kingpin.ParseContext) error {
-	fmt.Printf(">>>>>>> SET VERBOSE\n")
-	// //fmt.Printf(">>>>>>> VERBOSE %v\n\n", c.Elements)
-	// for _, value := range c.Elements {
-	// 	fmt.Printf(">>>>>>> VERBOSE %v - %s\n", value.Clause, value.Value)
-	// }
+	cmd.SetLogger(logrus.NewSimpleLogger(lgrus.InfoLevel))
+	return nil
+}
+
+func setDebug(c *kingpin.ParseContext) error {
+	cmd.SetLogger(logrus.NewSimpleLogger(lgrus.DebugLevel))
 	return nil
 }

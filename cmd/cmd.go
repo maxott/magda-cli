@@ -4,6 +4,7 @@ package cmd
 import (
 	"github.com/maxott/magda-cli/pkg/adapter"
 	"gopkg.in/alecthomas/kingpin.v2"
+	lgrus "github.com/sirupsen/logrus"
 
 	"github.com/maxott/magda-cli/pkg/log"
 	"github.com/maxott/magda-cli/pkg/log/logrus"
@@ -23,7 +24,7 @@ var (
 	jwtUser   = app.Flag("jwt-user-id", "User ID for creating JWT token for inernal comms [MAGDA_JWT_USER_ID]").Envar("MAGDA_JWT_USER_ID").String()
 	// verbose   = app.Flag("verbose", "Be chatty [MAGDA_VERBOSE]").Short('v').Envar("MAGDA_VERBOSE").Bool()
 
-	logger = logrus.NewDefaultLogger()
+	logger = logrus.NewSimpleLogger(lgrus.WarnLevel)
 )
 
 func App() *kingpin.Application {
@@ -41,6 +42,10 @@ func Adapter() *adapter.Adapter {
 
 func Logger() log.Logger {
 	return logger
+}
+
+func SetLogger(l log.Logger)  {
+	logger = l
 }
 
 func createJwtToken(logger log.Logger) string {
