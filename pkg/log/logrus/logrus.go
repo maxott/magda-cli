@@ -92,12 +92,12 @@ func (l *logger) With(key string, value interface{}) log.Logger {
 }
 
 // NewDefaultLogger creates a new instance of logrus logger.
-func NewDefaultLogger() log.Logger {
+func NewSimpleLogger(level lgrus.Level) log.Logger {
 	l := &lgrus.Logger{
 		Out:          os.Stderr,
 		Formatter:    new(lgrus.TextFormatter),
 		Hooks:        make(lgrus.LevelHooks),
-		Level:        lgrus.DebugLevel, // lgrus.InfoLevel,
+		Level:        level, // lgrus.InfoLevel,
 		ExitFunc:     os.Exit,
 		ReportCaller: false,
 	}

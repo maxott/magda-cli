@@ -41,7 +41,7 @@ func ToPayload(body []byte, contentType string, logger log.Logger) (Payload, err
 	case map[string]interface{}:
 		return JsonObjPayload{m, body}, nil
 	default:
-		return nil, fmt.Errorf("Unknown json type in body")
+		return nil, logger.Errorf(nil, "Unknown json type in body")
 	}
 }
 
