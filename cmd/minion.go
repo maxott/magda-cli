@@ -6,7 +6,6 @@ import (
 
 	"github.com/maxott/magda-cli/pkg/adapter"
 	"github.com/maxott/magda-cli/pkg/minion"
-	//log "github.com/sirupsen/logrus"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
 
