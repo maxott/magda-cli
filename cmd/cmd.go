@@ -22,7 +22,6 @@ var (
 			Default("false").Envar("MAGDA_SKIP_GATEWAY").Bool()
 	jwtSecret = app.Flag("jwt-secret", "Secret used for creating JWT token for inernal comms [MAGDA_JWT_SECRET]").Envar("MAGDA_JWT_SECRET").String()
 	jwtUser   = app.Flag("jwt-user-id", "User ID for creating JWT token for inernal comms [MAGDA_JWT_USER_ID]").Envar("MAGDA_JWT_USER_ID").String()
-	// verbose   = app.Flag("verbose", "Be chatty [MAGDA_VERBOSE]").Short('v').Envar("MAGDA_VERBOSE").Bool()
 
 	logger = logrus.NewSimpleLogger(lgrus.WarnLevel)
 )

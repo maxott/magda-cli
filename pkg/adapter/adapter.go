@@ -114,21 +114,21 @@ func connect(
 	}
 
 	client := &http.Client{Timeout: time.Second * 10}
-	logger.Info("Calling magda registry")
+	logger.Debug("Calling magda registry")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, logger.Error(err, "Error reading response.")
+		return nil, logger.Error(err, "HTTP request failed.")
 	}
 	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, logger.Error(err, "Error reading body. ")
+		return nil, logger.Error(err, "Accessing respone body failed.")
 	}
 
 	if resp.StatusCode >= 300 {
 		if len(respBody) > 0 {
-			logger = logger.With("body", respBody)
+			logger = logger.With("body", string(respBody))
 		}
 		return nil, logger.With("statusCode", resp.StatusCode).Error(nil, "Error response")
 	}
