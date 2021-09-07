@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
-	"github.com/maxott/magda-cli/pkg/log"
+	log "go.uber.org/zap"	
 )
 
 /**** LIST ****/
@@ -13,7 +13,7 @@ import (
 type ListRequest struct {
 }
 
-func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := minionPath(nil, adpt)
 	return (*adpt).Get(path, logger)
 }
@@ -97,7 +97,7 @@ type createConfig struct {
 	Dereference              bool     `json:"dereference"`
 }
 
-func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	config := createConfig{
 		Aspects:                  cmd.Aspects,
 		OptionalAspects:          cmd.OptionalAspects,
@@ -127,7 +127,7 @@ func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (ad
 		return nil, err
 	} else {
 		path := minionPath(nil, adpt)
-		logger.Infof("POTS minion - %s", string(body))
+		logger.Info("POTS minion", log.ByteString("body", body))
 		return (*adpt).Post(path, bytes.NewReader(body), logger)
 	}
 }
@@ -180,7 +180,7 @@ type DeleteRequest struct {
 	Id string
 }
 
-func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := minionPath(&cmd.Id, adpt)
 	return (*adpt).Delete(path, logger)
 }

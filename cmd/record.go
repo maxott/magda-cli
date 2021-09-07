@@ -102,11 +102,17 @@ func addAspects(r *CreateCmd) {
 		if r.AspectFile == "" {
 			App().Fatalf("required flag --aspect-file not provided, try --help")
 		}
-		adata, err := adapter.LoadJsonFromFile(r.AspectFile)
-		if err != nil {
-			App().Fatalf("failed to load & verify '%s' - %s", r.AspectFile, err)
-		}
-		r.Aspects[r.AspectName] = adata.AsObject()
+
+		r.Aspects[r.AspectName] = loadObjFromFile(r.AspectFile)
+
+		// adata, err := adapter.LoadPayloadFromFile(r.AspectFile)
+		// if err != nil {
+		// 	App().Fatalf("failed to load '%s' - %s", r.AspectFile, err)
+		// }
+		// r.Aspects[r.AspectName], err = adata.AsObject()
+		// if err != nil {
+		// 	App().Fatalf("failed to verify '%s' - %s", r.AspectFile, err)
+		// }
 	}
 }
 

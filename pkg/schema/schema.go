@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
-	"github.com/maxott/magda-cli/pkg/log"
+	log "go.uber.org/zap"
 )
 
 /**** LIST ****/
@@ -13,7 +13,7 @@ import (
 type ListRequest struct {
 }
 
-func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := aspectPath(nil, adpt)
 	return (*adpt).Get(path, logger)
 }
@@ -26,7 +26,7 @@ type CreateRequest struct {
 	Schema map[string]interface{} `json:"jsonSchema"`
 }
 
-func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	if body, err := json.MarshalIndent(r, "", "  "); err != nil {
@@ -43,7 +43,7 @@ type ReadRequest struct {
 	Id string
 }
 
-func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := aspectPath(&cmd.Id, adpt)
 	return (*adpt).Get(path, logger)
 }
@@ -52,7 +52,7 @@ func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger log.Logger) (adapte
 
 type UpdateRequest = CreateRequest
 
-func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	path := aspectPath(&r.Id, adpt)
@@ -62,9 +62,10 @@ func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger log.Logger) (ad
 		if pld, err := (*adpt).Get(path, logger); err != nil {
 			return nil, err
 		} else {
-			obj := pld.AsObject()
-			if obj == nil {
-				return nil, logger.Error(nil, "no schema body found")
+			obj, err := pld.AsObject()
+			if err != nil {
+				logger.Error("no schema found in body", log.Error(err))
+				return nil, err
 			}
 			r.Name = obj["name"].(string)
 		}

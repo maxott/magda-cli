@@ -36,19 +36,32 @@ type SchemaCreate struct {
 func cliSchemaCreate(topCmd *kingpin.CmdClause) {
 	r := &SchemaCreate{}
 	c := topCmd.Command("create", "Creates a new schema").Action(func(_ *kingpin.ParseContext) error {
-		if js, err := adapter.LoadJsonFromFile(r.SchemaFile); err != nil {
-			return fmt.Errorf("failed to load & verify '%s' - %s", r.SchemaFile, err)
-		} else {
-			cmd := schema.CreateRequest{
-				Id: r.Id, Name: r.Name, Schema: js.AsObject(),
-			}
-			if _, err := schema.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
-				fmt.Printf("Successfully create schema '%s'\n", r.Id)
-				return nil
-			} else {
-				return err
-			}
+		cmd := schema.CreateRequest{
+			Id: r.Id, Name: r.Name, Schema: loadObjFromFile(r.SchemaFile),
 		}
+		if _, err := schema.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
+			fmt.Printf("Successfully create schema '%s'\n", r.Id)
+			return nil
+		} else {
+			return err
+		}
+		// if js, err := adapter.LoadPayloadFromFile(r.SchemaFile); err != nil {
+		// 	return fmt.Errorf("failed to load & verify '%s' - %s", r.SchemaFile, err)
+		// } else {
+		// 	schemaObj, err := js.AsObject()
+		// 	if err != nil {
+		// 		App().Fatalf("failed to verify '%s' - %s", r.SchemaFile, err)
+		// 	}
+		// 	cmd := schema.CreateRequest{
+		// 		Id: r.Id, Name: r.Name, Schema: schemaObj,
+		// 	}
+		// 	if _, err := schema.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
+		// 		fmt.Printf("Successfully create schema '%s'\n", r.Id)
+		// 		return nil
+		// 	} else {
+		// 		return err
+		// 	}
+		// }
 	})
 	c.Flag("name", "Descriptive name").
 		Short('n').
@@ -86,19 +99,28 @@ func cliSchemaRead(topCmd *kingpin.CmdClause) {
 func cliSchemaUpdate(topCmd *kingpin.CmdClause) {
 	r := &SchemaCreate{}
 	c := topCmd.Command("update", "Update existing schema").Action(func(_ *kingpin.ParseContext) error {
-		if js, err := adapter.LoadJsonFromFile(r.SchemaFile); err != nil {
-			return fmt.Errorf("failed to load & verify '%s' - %s", r.SchemaFile, err)
-		} else {
-			cmd := schema.UpdateRequest{
-				Id: r.Id, Name: r.Name, Schema: js.AsObject(),
-			}
-			if _, err := schema.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
-				fmt.Printf("Successfully updated schema '%s'\n", r.Id)
-				return nil
-			} else {
-				return err
-			}
+		cmd := schema.UpdateRequest{
+			Id: r.Id, Name: r.Name, Schema: loadObjFromFile(r.SchemaFile),
 		}
+		if _, err := schema.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
+			fmt.Printf("Successfully updated schema '%s'\n", r.Id)
+			return nil
+		} else {
+			return err
+		}
+		// if js, err := adapter.LoadJsonFromFile(r.SchemaFile); err != nil {
+		// 	return fmt.Errorf("failed to load & verify '%s' - %s", r.SchemaFile, err)
+		// } else {
+		// 	cmd := schema.UpdateRequest{
+		// 		Id: r.Id, Name: r.Name, Schema: js.AsObject(),
+		// 	}
+		// 	if _, err := schema.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
+		// 		fmt.Printf("Successfully updated schema '%s'\n", r.Id)
+		// 		return nil
+		// 	} else {
+		// 		return err
+		// 	}
+		// }
 	})
 	c.Flag("name", "Descriptive name").
 		Short('n').

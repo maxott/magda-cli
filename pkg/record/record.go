@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/maxott/magda-cli/pkg/adapter"
-	"github.com/maxott/magda-cli/pkg/log"
+	log "go.uber.org/zap"	
 )
 
 /**** LIST ****/
@@ -35,7 +35,7 @@ type ListResult struct {
 	} `json:"records"`
 }
 
-func List(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (ListResult, error) {
+func List(cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (ListResult, error) {
 	pyl, err := ListRaw(cmd, adpt, logger)
 	if err != nil {
 		return ListResult{}, err
@@ -45,7 +45,7 @@ func List(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (ListResul
 	return res, nil
 }
 
-func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := recordPath(nil, adpt)
 
 	q := []string{}
@@ -83,14 +83,15 @@ type CreateRequest struct {
 type Aspects map[string]Aspect
 type Aspect map[string]interface{}
 
-func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	if (*cmd).Id == "" {
 		(*cmd).Id = uuid.New().String()
 	}
 
 	body, err := json.MarshalIndent(*cmd, "", "  ")
 	if err != nil {
-		return nil, logger.Errorf(err, "error marshalling body.")
+		logger.Error("error marshalling body.", log.Error(err))
+		return nil, err
 	}
   // fmt.Printf("RECORD %+v - %s\n", cmd, body)
 
@@ -106,7 +107,7 @@ type ReadRequest struct {
 	Aspect     string
 }
 
-func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt)
 	if cmd.AddAspects != "" {
 		path = path + "?aspect=" + cmd.AddAspects
@@ -123,7 +124,7 @@ func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger log.Logger) (adapte
 
 type UpdateRequest = CreateRequest
 
-func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	path := recordPath(&r.Id, adpt)
@@ -133,15 +134,17 @@ func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger log.Logger) (ad
 		if err != nil {
 			return nil, err
 		}
-		obj := pld.AsObject()
-		if obj == nil {
-			return nil, logger.Error(nil, "no record body found")
+		obj, err := pld.AsObject()
+		if err != nil {
+			logger.Error("no record body found", log.Error(err))
+			return nil, err
 		}
 		r.Name = obj["name"].(string)
 	}
 	body, err := json.MarshalIndent(r, "", "  ")
 	if err != nil {
-		return nil, logger.Errorf(err, "error marshalling body.")
+		logger.Error("error marshalling body.", log.Error(err))
+		return nil, err
 	}
 	return (*adpt).Put(path, bytes.NewReader(body), logger)
 }
@@ -154,11 +157,12 @@ type PatchAspectRequest struct {
 	Patch      []interface{}
 }
 
-func PatchAspectRaw(cmd *PatchAspectRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func PatchAspectRaw(cmd *PatchAspectRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt) + "/aspects/" + cmd.Aspect
 	body, err := json.MarshalIndent(cmd.Patch, "", "  ")
 	if err != nil {
-		return nil, logger.Errorf(err, "error marshalling body")
+		logger.Error("marshalling body", log.Error(err))
+		return nil, err
 	}
 	return (*adpt).Patch(path, bytes.NewReader(body), logger)
 }
@@ -170,7 +174,7 @@ type DeleteRequest struct {
 	AspectName string
 }
 
-func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt)
 	if cmd.AspectName != "" {
 		path = path + "/aspects/" + cmd.AspectName
@@ -188,7 +192,7 @@ type HistoryRequest struct {
 	PageToken string
 }
 
-func HistoryRaw(cmd *HistoryRequest, adpt *adapter.Adapter, logger log.Logger) (adapter.Payload, error) {
+func HistoryRaw(cmd *HistoryRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt) + "/history"
 	if cmd.EventId != "" {
 		path = path + "/" + cmd.EventId

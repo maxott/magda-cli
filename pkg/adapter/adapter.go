@@ -2,14 +2,14 @@
 package adapter
 
 import (
-	"encoding/json"
-	"github.com/golang-jwt/jwt"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"time"
 
-	"github.com/maxott/magda-cli/pkg/log"
+	"github.com/golang-jwt/jwt"
+	log "go.uber.org/zap"
 )
 
 type ConnectionCtxt struct {
@@ -30,20 +30,6 @@ func CreateJwtToken(userID *string, signingSecret *string) (string, error) {
 	return token.SignedString([]byte(*signingSecret))
 }
 
-func LoadJsonFromFile(fileName string) (Payload, error) {
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
-	var f interface{}
-	err = json.Unmarshal(data, &f)
-	if err != nil {
-		return nil, err
-	}
-	m := f.(map[string]interface{})
-	return JsonObjPayload{m, data}, nil
-}
-
 func RestAdapter(ctxt ConnectionCtxt) Adapter {
 	return restAdapter{ctxt}
 }
@@ -52,23 +38,23 @@ type restAdapter struct {
 	ctxt ConnectionCtxt
 }
 
-func (a restAdapter) Get(path string, logger log.Logger) (Payload, error) {
+func (a restAdapter) Get(path string, logger *log.Logger) (Payload, error) {
 	return connect("GET", path, nil, &a.ctxt, logger)
 }
 
-func (a restAdapter) Post(path string, body io.Reader, logger log.Logger) (Payload, error) {
+func (a restAdapter) Post(path string, body io.Reader, logger *log.Logger) (Payload, error) {
 	return connect("POST", path, body, &a.ctxt, logger)
 }
 
-func (a restAdapter) Put(path string, body io.Reader, logger log.Logger) (Payload, error) {
+func (a restAdapter) Put(path string, body io.Reader, logger *log.Logger) (Payload, error) {
 	return connect("PUT", path, body, &a.ctxt, logger)
 }
 
-func (a restAdapter) Patch(path string, body io.Reader, logger log.Logger) (Payload, error) {
+func (a restAdapter) Patch(path string, body io.Reader, logger *log.Logger) (Payload, error) {
 	return connect("PATCH", path, body, &a.ctxt, logger)
 }
 
-func (a restAdapter) Delete(path string, logger log.Logger) (Payload, error) {
+func (a restAdapter) Delete(path string, logger *log.Logger) (Payload, error) {
 	return connect("DELETE", path, nil, &a.ctxt, logger)
 }
 
@@ -81,21 +67,23 @@ func connect(
 	path string,
 	body io.Reader,
 	ctxt *ConnectionCtxt,
-	logger log.Logger,
+	logger *log.Logger,
 ) (Payload, error) {
-	logger = logger.With("method", method).With("path", path)
+	logger = logger.With(log.String("method", method),log.String("path", path) )
 	if ctxt.Host == "" {
-		return nil, logger.Error(nil, "required flag --host not provided, try --help")
+		logger.Error("Missing 'host'")
+		return nil, fmt.Errorf("missing magda host")
 	}
 	protocol := "http://"
 	if ctxt.UseTLS {
 		protocol = "https://"
 	}
-	path = protocol + ctxt.Host + path
-
-	req, err := http.NewRequest(method, path, body)
+	url := protocol + ctxt.Host + path
+	logger = logger.With(log.String("url", url))
+	req, err := http.NewRequest(method, url, body)
 	if err != nil {
-		return nil, logger.Error(err, "Error reading request. ")
+		logger.Error("Reading http reponse", log.Error(err))
+		return nil, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
@@ -117,20 +105,23 @@ func connect(
 	logger.Debug("Calling magda registry")
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, logger.Error(err, "HTTP request failed.")
+		logger.Error("HTTP request failed.", log.Error(err))
+		return nil, err
 	}
 	defer resp.Body.Close()
 
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, logger.Error(err, "Accessing respone body failed.")
+		logger.Error("Accessing response body failed.", log.Error(err))
+		return nil, err
 	}
 
 	if resp.StatusCode >= 300 {
 		if len(respBody) > 0 {
-			logger = logger.With("body", string(respBody))
+			logger = logger.With(log.ByteString("body", respBody))
 		}
-		return nil, logger.With("statusCode", resp.StatusCode).Error(nil, "Error response")
+		logger.Error("HTTP response", log.Int("statusCode", resp.StatusCode))
+		return nil, fmt.Errorf("Error response")
 	}
 	contentType := resp.Header.Get("Content-Type") 
 	return ToPayload(respBody, contentType, logger)
