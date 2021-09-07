@@ -18,7 +18,7 @@ type Adapter interface {
 
 type Payload interface {
 	// IsObject() bool
-	AsType(r *interface{}) error
+	AsType(r interface{}) error
 	AsObject() (map[string]interface{}, error)
 	AsArray() ([]interface{}, error)
 	AsBytes() []byte

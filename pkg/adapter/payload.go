@@ -66,7 +66,7 @@ func ReplyPrinter(pld Payload, err error) error {
 	}
 }
 
-func (p *payload) AsType(r *interface{}) error {
+func (p *payload) AsType(r interface{}) error {
 	return json.Unmarshal(p.body, r)
 }
 
