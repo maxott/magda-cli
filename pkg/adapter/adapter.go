@@ -82,7 +82,7 @@ func connect(
 	logger = logger.With(log.String("url", url))
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
-		logger.Error("Reading http reponse", log.Error(err))
+		logger.Error("Creating http request", log.Error(err))
 		return nil, err
 	}
 
