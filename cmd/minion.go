@@ -24,7 +24,11 @@ func init() {
 func cliMinionList(topCmd *kingpin.CmdClause) {
 	cmd := &minion.ListRequest{}
 	topCmd.Command("list", "List all minion registration").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(minion.ListRaw(cmd, Adapter(), Logger()))
+		if pyld, err := minion.ListRaw(cmd, Adapter(), Logger()); err != nil {
+			return err
+		} else {
+			return adapter.ReplyPrinter(pyld, *useYaml)
+		}	
 	})
 }
 

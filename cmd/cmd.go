@@ -2,6 +2,7 @@
 package cmd
 
 import (
+	"os"
 	"github.com/maxott/magda-cli/pkg/adapter"
 	"gopkg.in/alecthomas/kingpin.v2"
 
@@ -20,6 +21,8 @@ var (
 			Default("false").Envar("MAGDA_SKIP_GATEWAY").Bool()
 	jwtSecret = app.Flag("jwt-secret", "Secret used for creating JWT token for inernal comms [MAGDA_JWT_SECRET]").Envar("MAGDA_JWT_SECRET").String()
 	jwtUser   = app.Flag("jwt-user-id", "User ID for creating JWT token for inernal comms [MAGDA_JWT_USER_ID]").Envar("MAGDA_JWT_USER_ID").String()
+
+	useYaml        = app.Flag("use-yaml", "Use and assume data formated in YAML [MAGDA_USE_YAML]").Short('y').Envar("MAGDA_USE_YAML").Bool()
 
 	logger *log.Logger
 )
@@ -62,13 +65,36 @@ func createJwtToken(logger *log.Logger) string {
 }
 
 func loadObjFromFile(fileName string) map[string]interface{} {
-	adata, err := adapter.LoadPayloadFromFile(fileName)
+	if fileName != "-" {
+		if s, err := os.Stat(fileName); os.IsNotExist(err) {
+			App().Fatalf("file '%s' does not exist", fileName)
+		} else if err != nil {
+			App().Fatalf("failed to verify existence of file '%s' - %s", fileName, err)
+		} else {
+			if s.IsDir() {
+				App().Fatalf("path '%s' is not a file", fileName)
+			}
+		}
+	}
+	adata, err := adapter.LoadPayloadFromFile(fileName, *useYaml)
 	if err != nil {
 		App().Fatalf("failed to load '%s' - %s", fileName, err)
 	}
 	obj, err := adata.AsObject()
 	if err != nil {
 		App().Fatalf("failed to verify '%s' - %s", fileName, err)
+	}
+	return obj
+}
+
+func loadObjFromStdin() map[string]interface{} {
+	adata, err := adapter.LoadPayloadFromStdin(*useYaml)
+	if err != nil {
+		App().Fatalf("failed to load data from stdin - %s", err)
+	}
+	obj, err := adata.AsObject()
+	if err != nil {
+		App().Fatalf("failed to verify data from stdin - %s", err)
 	}
 	return obj
 }

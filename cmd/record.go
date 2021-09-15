@@ -29,8 +29,11 @@ func cliRecordList(topCmd *kingpin.CmdClause) {
 		// 	fmt.Printf("List: %+v\n", rec)
 		// 	return nil
 		// }
-
-		return adapter.ReplyPrinter(record.ListRaw(r, Adapter(), Logger()))
+		if pyld, err := record.ListRaw(r, Adapter(), Logger()); err != nil {
+			return err
+		} else {
+			return adapter.ReplyPrinter(pyld, *useYaml)
+		}
 	})
 	c.Flag("aspects", "The aspects for which to retrieve data").
 		Short('a').
@@ -52,12 +55,13 @@ func cliRecordList(topCmd *kingpin.CmdClause) {
 /**** CREATE ****/
 
 type CreateCmd struct {
-	Id         string         `json:"id"`
-	Name       string         `json:"name"`
-	Aspects    record.Aspects `json:"aspects"`
-	SourceTag  string         `json:"sourceTag,omitempty"`
-	AspectName string         `json:"-"`
-	AspectFile string         `json:"-"`
+	Id              string         `json:"id"`
+	Name            string         `json:"name"`
+	Aspects         record.Aspects `json:"aspects"`
+	SourceTag       string         `json:"sourceTag,omitempty"`
+	AspectName      string         `json:"-"`
+	AspectFile      string         `json:"-"`
+	AspectFromStdin bool           `json:"-"`
 }
 
 func cliRecordCreate(topCmd *kingpin.CmdClause) {
@@ -91,28 +95,26 @@ func cliAddAspectFlags(r *CreateCmd, c *kingpin.CmdClause) {
 	c.Flag("aspect-file", "File containing aspect data").
 		Short('f').
 		ExistingFileVar(&r.AspectFile)
+	c.Flag("stdin", "Read aspect data from stdin").
+		BoolVar(&r.AspectFromStdin)
+
 }
 
 func addAspects(r *CreateCmd) {
 	r.Aspects = record.Aspects{}
-	if r.AspectName != "" || r.AspectFile != "" {
-		if r.AspectName == "" {
+	if r.AspectName == "" {
+		if r.AspectFile != "" || r.AspectFromStdin {
 			App().Fatalf("required flag --aspect-name not provided, try --help")
 		}
-		if r.AspectFile == "" {
-			App().Fatalf("required flag --aspect-file not provided, try --help")
-		}
+		return
+	}
 
+	if r.AspectFile != "" {
 		r.Aspects[r.AspectName] = loadObjFromFile(r.AspectFile)
-
-		// adata, err := adapter.LoadPayloadFromFile(r.AspectFile)
-		// if err != nil {
-		// 	App().Fatalf("failed to load '%s' - %s", r.AspectFile, err)
-		// }
-		// r.Aspects[r.AspectName], err = adata.AsObject()
-		// if err != nil {
-		// 	App().Fatalf("failed to verify '%s' - %s", r.AspectFile, err)
-		// }
+	} else if r.AspectFromStdin {
+		r.Aspects[r.AspectName] = loadObjFromStdin()
+	} else {
+		App().Fatalf("required flag --aspect-file or --stdin not provided, try --help")
 	}
 }
 
@@ -121,7 +123,11 @@ func addAspects(r *CreateCmd) {
 func cliRecordRead(topCmd *kingpin.CmdClause) {
 	r := &record.ReadRequest{}
 	c := topCmd.Command("read", "Read the content of a record").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(record.ReadRaw(r, Adapter(), Logger()))
+		if pyld, err := record.ReadRaw(r, Adapter(), Logger()); err != nil {
+			return err
+		} else {
+			return adapter.ReplyPrinter(pyld, *useYaml)
+		}
 	})
 	c.Flag("id", "Record ID").
 		Short('i').
@@ -186,7 +192,11 @@ func cliRecordDelete(topCmd *kingpin.CmdClause) {
 func cliRecordHistory(topCmd *kingpin.CmdClause) {
 	r := &record.HistoryRequest{Offset: -1, Limit: -1}
 	c := topCmd.Command("history", "Get a list of all events for a record").Action(func(_ *kingpin.ParseContext) error {
-		return adapter.ReplyPrinter(record.HistoryRaw(r, Adapter(), Logger()))
+		if pyld, err := record.HistoryRaw(r, Adapter(), Logger()); err != nil {
+			return err
+		} else {
+			return adapter.ReplyPrinter(pyld, *useYaml)
+		}
 	})
 	c.Flag("id", "Record ID").
 		Short('i').

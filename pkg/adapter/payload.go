@@ -2,10 +2,13 @@ package adapter
 
 import (
 	"encoding/json"
+	"gopkg.in/yaml.v2"
 	"fmt"
 	"errors"
 	"io/ioutil"
+	"os"
 
+	"github.com/jdockerty/yaml-to-json-go/conversion"
 	log "go.uber.org/zap"
 )
 
@@ -17,53 +20,55 @@ type payload struct {
 func ToPayload(body []byte, contentType string, logger *log.Logger) (Payload, error) {
 	logger.Debug("Received", log.String("content-type", contentType))
 	return &payload{body: body, contentType: contentType}, nil
-	// var f interface{}
-	// err := json.Unmarshal(body, &f)
-	// if err != nil {
-	// 	return nil, err
-	// }
-
-	// switch m := f.(type) {
-	// case []interface{}:
-	// 	return JsonArrPayload{m, body}, nil
-	// case map[string]interface{}:
-	// 	return JsonObjPayload{m, body}, nil
-	// default:
-	// 	return nil, logger.Error(nil, "Unknown json type in body")
-	// }
 }
 
-func LoadPayloadFromFile(fileName string) (Payload, error) {
-	data, err := ioutil.ReadFile(fileName)
-	if err != nil {
+func LoadPayloadFromStdin(isYAML bool) (Payload, error) {
+	if data, err := ioutil.ReadAll(os.Stdin); err != nil {
 		return nil, err
+	} else {
+		return LoadPayloadFromBytes(data, isYAML)
 	}
-	return &payload{body: data}, nil
-	// var f interface{}
-	// err = json.Unmarshal(data, &f)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// m := f.(map[string]interface{})
-	// return JsonObjPayload{m, data}, nil
 }
 
-func ReplyPrinter(pld Payload, err error) error {
-	if err != nil {
-		return err
+func LoadPayloadFromFile(fileName string, isYAML bool) (Payload, error) {
+	if data, err := ioutil.ReadFile(fileName); err != nil {
+		return nil, err
+	} else {
+		return LoadPayloadFromBytes(data, isYAML)
 	}
+}
 
+func LoadPayloadFromBytes(data []byte, isYAML bool) (pyld Payload, err error) {
+	if isYAML {
+		obj := make(map[interface{}]interface{})
+		if err = yaml.Unmarshal(data, &obj); err != nil {
+			return
+		}
+		if data, err = conversion.YAMLToJSON(obj); err != nil {
+			return
+		}
+	}
+	pyld = &payload{body: data}
+	return
+}
+
+func ReplyPrinter(pld Payload, useYAML bool) (err error) {
 	var f interface{}
 	if err = pld.AsType(&f); err != nil {
-		return err
+		return
 	}
 	var b []byte
-	if b, err = json.MarshalIndent(f, "", "  "); err != nil {
-		return err
+	if useYAML {
+		if b, err = yaml.Marshal(f); err != nil {
+			return
+		}
 	} else {
-		fmt.Printf("%s\n", b)
-		return nil
+		if b, err = json.MarshalIndent(f, "", "  "); err != nil {
+			return
+		} 
 	}
+	fmt.Printf("%s\n", b)
+	return
 }
 
 func (p *payload) AsType(r interface{}) error {

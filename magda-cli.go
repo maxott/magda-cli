@@ -3,12 +3,15 @@ package main
 
 import (
 	"os"
+	"fmt"
 
 	"github.com/maxott/magda-cli/cmd"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/alecthomas/kingpin.v2"
 )
+
+var Version string
 
 func main() {
 	app := cmd.App()
@@ -17,6 +20,7 @@ func main() {
 	setLogger(zapcore.WarnLevel) 
 	app.Flag("verbose", "Be chatty [MAGDA_VERBOSE]").Short('v').Envar("MAGDA_VERBOSE").Action(setVerbose).Bool()
 	app.Flag("debug", "Be very chatty [MAGDA_DEBUG]").Short('d').Envar("MAGDA_DEBUG").Action(setDebug).Bool()
+	app.Flag("version", "Print out version").Action(printVersion).Bool()
 	
 
 	// app.PreAction(configLogger)
@@ -42,5 +46,11 @@ func setVerbose(c *kingpin.ParseContext) error {
 
 func setDebug(c *kingpin.ParseContext) error {
 	setLogger(zapcore.DebugLevel)
+	return nil
+}
+
+func printVersion(c *kingpin.ParseContext) error {
+	fmt.Printf("Version: %s\n", Version)
+	os.Exit(0)
 	return nil
 }
