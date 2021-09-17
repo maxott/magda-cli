@@ -15,6 +15,9 @@ build:
 install: build
 	go install -ldflags "-X main.Version=${VERSION}" .
 
+test:
+	go test -v ./...
+
 create-schemas: build
 	./magda-cli schema create --id cse-order --name cse-order --schema-file example/schema/order.json
 	./magda-cli schema create --id cse-service --name cse-service --schemaFile example/schema/service.json

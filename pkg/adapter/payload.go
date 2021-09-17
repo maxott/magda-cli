@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/jdockerty/yaml-to-json-go/conversion"
 	log "go.uber.org/zap"
 )
 
@@ -44,12 +43,46 @@ func LoadPayloadFromBytes(data []byte, isYAML bool) (pyld Payload, err error) {
 		if err = yaml.Unmarshal(data, &obj); err != nil {
 			return
 		}
-		if data, err = conversion.YAMLToJSON(obj); err != nil {
+		if data, err = yamlToJSON(obj); err != nil {
 			return
 		}
 	}
 	pyld = &payload{body: data}
 	return
+}
+
+func yamlToJSON(yamlData map[interface{}]interface{}) ([]byte, error) {
+	cleanedYaml := cleanYaml(yamlData)
+	output, err := json.Marshal(cleanedYaml)
+	if err != nil {
+		return nil, fmt.Errorf("error converting yaml to json: %s", err.Error())
+	}
+	return output, nil
+}
+
+// fixed version from the one found in "github.com/jdockerty/yaml-to-json-go/conversion"
+func cleanYaml(in map[interface{}]interface{}) map[string]interface{} {
+	output := make(map[string]interface{})
+	for key, value := range in {
+		skey := key.(string) // expected to be 'string'
+		output[skey] = value
+
+		mval, isMap := value.(map[interface{}]interface{})
+		sval, isSlice := value.([]interface{})
+
+		if isMap {
+			output[skey] = cleanYaml(mval)
+		} else if isSlice {
+			for i, item := range sval {
+				mitem, isInnerMap := item.(map[interface{}]interface{})
+				if isInnerMap {
+					sval[i] = cleanYaml(mitem)
+				}
+				// otherwise do nothing
+			}
+		}
+	}
+	return output
 }
 
 func ReplyPrinter(pld Payload, useYAML bool) (err error) {
