@@ -18,6 +18,9 @@ install: build
 test:
 	go test -v ./...
 
+release:
+	goreleaser release --rm-dist
+
 create-schemas: build
 	./magda-cli schema create --id cse-order --name cse-order --schema-file example/schema/order.json
 	./magda-cli schema create --id cse-service --name cse-service --schemaFile example/schema/service.json

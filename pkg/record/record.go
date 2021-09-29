@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/maxott/magda-cli/pkg/adapter"
-	log "go.uber.org/zap"	
+	log "go.uber.org/zap"
 )
 
 /**** LIST ****/
@@ -93,7 +93,7 @@ func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (a
 		logger.Error("error marshalling body.", log.Error(err))
 		return nil, err
 	}
-  // fmt.Printf("RECORD %+v - %s\n", cmd, body)
+	// fmt.Printf("RECORD %+v - %s\n", cmd, body)
 
 	path := recordPath(nil, adpt)
 	return (*adpt).Post(path, bytes.NewReader(body), logger)
@@ -147,24 +147,6 @@ func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger *log.Logger) (a
 		return nil, err
 	}
 	return (*adpt).Put(path, bytes.NewReader(body), logger)
-}
-
-/**** PATCH ASPECT ********/
-
-type PatchAspectRequest struct {
-	Id         string
-	Aspect     string
-	Patch      []interface{}
-}
-
-func PatchAspectRaw(cmd *PatchAspectRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
-	path := recordPath(&cmd.Id, adpt) + "/aspects/" + cmd.Aspect
-	body, err := json.MarshalIndent(cmd.Patch, "", "  ")
-	if err != nil {
-		logger.Error("marshalling body", log.Error(err))
-		return nil, err
-	}
-	return (*adpt).Patch(path, bytes.NewReader(body), logger)
 }
 
 /**** DELETE ****/
