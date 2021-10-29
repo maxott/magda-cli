@@ -16,23 +16,28 @@ import (
 /**** DATASETS ****/
 
 type DatasetsRequest struct {
-	Aspects   string
 	Query     string
 	Offset    int
 	Limit     int
-	PageToken string
 }
 
 type DatasetResult struct {
-	HasMore       bool   `json:"hasMore"`
-	NextPageToken string `json:"nextPageToken"`
-	Records       []struct {
-		Aspects   map[string]interface{} `json:"aspects"`
-		ID        string                 `json:"id"`
-		Name      string                 `json:"name"`
-		SourceTag string                 `json:"sourceTag"`
-		TenantID  int                    `json:"tenantId"`
-	} `json:"records"`
+	HitCount       int   `json:"hitCount"`
+	DataSets       []struct {
+		Title					string	`json:"title"`
+		Description				string	`json:"description"`
+		Issued					string `json:"issued"`
+		Modified				string `json:"modified"`
+		Languages				[]string `json:"languages"`
+		Publisher				string `json:"publisher"`
+		AccrualPeriodicity			string `json:"accrualPeriodicity"`
+		AccrualPeriodicityRecurrenceRule	string `json:"accrualPeriodicityRecurrenceRule"`
+		Themes					[]string `json:"themes"`
+		Keywords				[]string `json:"keywords"`
+		ContactPoint				string `json:"contactPoint"`
+		LandingPage				string `json:"landingPage"`
+		DefaultLicense				string `json:"defaultLicense"`
+	} `json:"dataSets"`
 }
 
 func Dataset(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) (DatasetResult, error) {
@@ -49,14 +54,9 @@ func DatasetRaw(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) 
 	path := recordPath(nil, adpt)
 
 	q := []string{}
-	if cmd.Aspects != "" {
-		q = append(q, "aspect="+url.QueryEscape(cmd.Aspects))
-	}
+
 	if cmd.Query != "" {
-		q = append(q, "aspectQuery="+url.QueryEscape(cmd.Query))
-	}
-	if cmd.PageToken != "" {
-		q = append(q, "pageToken="+url.QueryEscape(cmd.PageToken))
+		q = append(q, "query="+url.QueryEscape(cmd.Query))
 	}
 	if cmd.Offset >= 0 {
 		q = append(q, "start="+url.QueryEscape(strconv.Itoa(cmd.Offset)))
@@ -64,6 +64,7 @@ func DatasetRaw(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) 
 	if cmd.Limit >= 0 {
 		q = append(q, "limit="+url.QueryEscape(strconv.Itoa(cmd.Limit)))
 	}
+	
 	if len(q) > 0 {
 		path = path + "?" + strings.Join(q, "&")
 	}
@@ -74,9 +75,9 @@ func DatasetRaw(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) 
 /**** UTILS ****/
 
 func recordPath(id *string, adpt *adapter.Adapter) string {
-	path := "/api/v0/registry/records"
+	path := "/api/v0/search/datasets"
 	if (*adpt).SkipGateway() {
-		path = "/v0/records"
+		path = "/v0/datasets"
 	}
 	if id != nil {
 		path = path + "/" + *id
