@@ -24,7 +24,7 @@ func cliSearchDatasets(topCmd *kingpin.CmdClause) {
 			return adapter.ReplyPrinter(pyld, *useYaml)
 		}
 	})
-	c.Flag("query", "full text search query").
+	c.Flag("query", "Full text search query").
 		Short('q').
 		StringVar(&r.Query)
 	c.Flag("offset", "Index of first dataset retrieved").
