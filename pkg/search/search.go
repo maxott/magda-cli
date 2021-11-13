@@ -17,6 +17,7 @@ type DatasetRequest struct {
 	Query     string
 	Offset    int
 	Limit     int
+	Publisher string
 }
 
 type DatasetResult struct {
@@ -61,6 +62,9 @@ func DatasetRaw(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) 
 	}
 	if cmd.Limit >= 0 {
 		q = append(q, "limit="+url.QueryEscape(strconv.Itoa(cmd.Limit)))
+	}
+	if cmd.Publisher != "" {
+		q = append(q, "publisher="+url.QueryEscape(cmd.Publisher))
 	}
 	
 	if len(q) > 0 {

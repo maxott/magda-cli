@@ -31,4 +31,7 @@ func cliSearchDatasets(topCmd *kingpin.CmdClause) {
 	c.Flag("limit", "The maximumm number of datasets to retrieve").
 		Short('l').
 		IntVar(&r.Limit)
+	c.Flag("publisher", "Filter search query by names of organisations").
+		Short('p').
+		StringVar(&r.Publisher)
 }
