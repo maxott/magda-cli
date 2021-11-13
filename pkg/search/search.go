@@ -1,21 +1,19 @@
 package search
 
 import (
-	"bytes"
 	"encoding/json"
 	//"fmt"
 	"net/url"
 	"strconv"
 	"strings"
 
-	"github.com/google/uuid"
 	"github.com/maxott/magda-cli/pkg/adapter"
 	log "go.uber.org/zap"
 )
 
 /**** DATASETS ****/
 
-type DatasetsRequest struct {
+type DatasetRequest struct {
 	Query     string
 	Offset    int
 	Limit     int
