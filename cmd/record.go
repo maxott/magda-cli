@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
@@ -71,7 +72,7 @@ func cliRecordCreate(topCmd *kingpin.CmdClause) {
 		cmd := record.CreateRequest{
 			Id: r.Id, Name: r.Name, Aspects: r.Aspects, SourceTag: r.SourceTag,
 		}
-		if _, err := record.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
+		if _, err := record.CreateRaw(context.Background(), &cmd, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully create record '%s'\n", cmd.Id)
 			return nil
 		} else {
@@ -123,7 +124,7 @@ func addAspects(r *CreateCmd) {
 func cliRecordRead(topCmd *kingpin.CmdClause) {
 	r := &record.ReadRequest{}
 	c := topCmd.Command("read", "Read the content of a record").Action(func(_ *kingpin.ParseContext) error {
-		if pyld, err := record.ReadRaw(r, Adapter(), Logger()); err != nil {
+		if pyld, err := record.ReadRaw(context.Background(), r, Adapter(), Logger()); err != nil {
 			return err
 		} else {
 			return adapter.ReplyPrinter(pyld, *useYaml)
@@ -149,7 +150,7 @@ func cliRecordUpdate(topCmd *kingpin.CmdClause) {
 		cmd := record.UpdateRequest{
 			Id: r.Id, Name: r.Name, Aspects: r.Aspects, SourceTag: r.SourceTag,
 		}
-		if _, err := record.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
+		if _, err := record.UpdateRaw(context.Background(), &cmd, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully updated record '%s'\n", r.Id)
 			return nil
 		} else {
@@ -171,7 +172,7 @@ func cliRecordUpdate(topCmd *kingpin.CmdClause) {
 func cliRecordDelete(topCmd *kingpin.CmdClause) {
 	r := &record.DeleteRequest{}
 	c := topCmd.Command("delete", "Delete a record or one of it's aspects").Action(func(_ *kingpin.ParseContext) error {
-		if _, err := record.DeleteRaw(r, Adapter(), Logger()); err == nil {
+		if _, err := record.DeleteRaw(context.Background(), r, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully deleted record '%s'\n", r.Id)
 			return nil
 		} else {
@@ -192,7 +193,7 @@ func cliRecordDelete(topCmd *kingpin.CmdClause) {
 func cliRecordHistory(topCmd *kingpin.CmdClause) {
 	r := &record.HistoryRequest{Offset: -1, Limit: -1}
 	c := topCmd.Command("history", "Get a list of all events for a record").Action(func(_ *kingpin.ParseContext) error {
-		if pyld, err := record.HistoryRaw(r, Adapter(), Logger()); err != nil {
+		if pyld, err := record.HistoryRaw(context.Background(), r, Adapter(), Logger()); err != nil {
 			return err
 		} else {
 			return adapter.ReplyPrinter(pyld, *useYaml)

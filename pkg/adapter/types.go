@@ -1,17 +1,18 @@
 package adapter
 
 import (
+	"context"
 	"io"
 
 	log "go.uber.org/zap"
 )
 
 type Adapter interface {
-	Get(path string, logger *log.Logger) (Payload, error)
-	Post(path string, body io.Reader, logger *log.Logger) (Payload, error)
-	Put(path string, body io.Reader, logger *log.Logger) (Payload, error)
-	Patch(path string, body io.Reader, logger *log.Logger) (Payload, error)
-	Delete(path string, logger *log.Logger) (Payload, error)
+	Get(ctxt context.Context, path string, logger *log.Logger) (Payload, error)
+	Post(ctxt context.Context, path string, body io.Reader, logger *log.Logger) (Payload, error)
+	Put(ctxt context.Context, path string, body io.Reader, logger *log.Logger) (Payload, error)
+	Patch(ctxt context.Context, path string, body io.Reader, logger *log.Logger) (Payload, error)
+	Delete(ctxt context.Context, path string, logger *log.Logger) (Payload, error)
 
 	SkipGateway() bool // experimental!
 }
