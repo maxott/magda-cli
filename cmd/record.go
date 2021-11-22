@@ -23,14 +23,22 @@ func init() {
 
 func cliRecordList(topCmd *kingpin.CmdClause) {
 	r := &record.ListRequest{Offset: -1, Limit: -1}
+	var andQueries []string
+	var orQueries []string
 	c := topCmd.Command("list", "List some records").Action(func(_ *kingpin.ParseContext) error {
-		// if rec, err := record.List(r, Adapter()); err != nil {
-		// 	return err;
-		// } else {
-		// 	fmt.Printf("List: %+v\n", rec)
-		// 	return nil
-		// }
-		if pyld, err := record.ListRaw(r, Adapter(), Logger()); err != nil {
+		rq := r.AndQuery
+		for _, q := range andQueries {
+			rq = append(rq, record.NewQueryTermS(q))
+		}
+		r.AndQuery = rq
+
+		rq = r.OrQuery
+		for _, q := range orQueries {
+			rq = append(rq, record.NewQueryTermS(q))
+		}
+		r.OrQuery = rq
+
+		if pyld, err := record.ListRaw(context.Background(), r, Adapter(), Logger()); err != nil {
 			return err
 		} else {
 			return adapter.ReplyPrinter(pyld, *useYaml)
@@ -39,9 +47,11 @@ func cliRecordList(topCmd *kingpin.CmdClause) {
 	c.Flag("aspects", "The aspects for which to retrieve data").
 		Short('a').
 		StringVar(&r.Aspects)
-	c.Flag("query", "Record Name").
+	c.Flag("and-query", "Record Name").
 		Short('q').
-		StringVar(&r.Query)
+		StringsVar(&andQueries)
+	c.Flag("or-query", "Record Name").
+		StringsVar(&orQueries)
 	c.Flag("offset", "Index of first record retrieved").
 		Short('o').
 		IntVar(&r.Offset)
