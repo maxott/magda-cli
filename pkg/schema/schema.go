@@ -2,6 +2,7 @@ package schema
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
@@ -13,9 +14,9 @@ import (
 type ListRequest struct {
 }
 
-func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func ListRaw(ctxt context.Context, cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := aspectPath(nil, adpt)
-	return (*adpt).Get(path, logger)
+	return (*adpt).Get(ctxt, path, logger)
 }
 
 /**** CREATE ****/
@@ -26,14 +27,14 @@ type CreateRequest struct {
 	Schema map[string]interface{} `json:"jsonSchema"`
 }
 
-func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func CreateRaw(ctxt context.Context, cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	if body, err := json.MarshalIndent(r, "", "  "); err != nil {
 		return nil, err
 	} else {
 		path := aspectPath(nil, adpt)
-		return (*adpt).Post(path, bytes.NewReader(body), logger)
+		return (*adpt).Post(ctxt, path, bytes.NewReader(body), logger)
 	}
 }
 
@@ -43,23 +44,23 @@ type ReadRequest struct {
 	Id string
 }
 
-func ReadRaw(cmd *ReadRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func ReadRaw(ctxt context.Context, cmd *ReadRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := aspectPath(&cmd.Id, adpt)
-	return (*adpt).Get(path, logger)
+	return (*adpt).Get(ctxt, path, logger)
 }
 
 /**** UPDATE ****/
 
 type UpdateRequest = CreateRequest
 
-func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func UpdateRaw(ctxt context.Context, cmd *UpdateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	r := *cmd
 
 	path := aspectPath(&r.Id, adpt)
 
 	if r.Name == "" {
 		// get current 'name' first as it is required
-		if pld, err := (*adpt).Get(path, logger); err != nil {
+		if pld, err := (*adpt).Get(ctxt, path, logger); err != nil {
 			return nil, err
 		} else {
 			obj, err := pld.AsObject()
@@ -74,7 +75,7 @@ func UpdateRaw(cmd *UpdateRequest, adpt *adapter.Adapter, logger *log.Logger) (a
 		return nil, err
 	} else {
 		// path := aspectPath(&r.Id, adpt)
-		return (*adpt).Put(path, bytes.NewReader(body), logger)
+		return (*adpt).Put(ctxt, path, bytes.NewReader(body), logger)
 	}
 }
 

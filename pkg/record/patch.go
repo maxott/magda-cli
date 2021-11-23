@@ -2,6 +2,7 @@ package record
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
@@ -19,14 +20,14 @@ type PatchAspectRequest struct {
 type PatchOp interface {
 }
 
-func PatchAspectRaw(cmd *PatchAspectRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func PatchAspectRaw(ctxt context.Context, cmd *PatchAspectRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := recordPath(&cmd.Id, adpt) + "/aspects/" + cmd.Aspect
 	body, err := json.MarshalIndent(cmd.Patch, "", "  ")
 	if err != nil {
 		logger.Error("marshalling body", log.Error(err))
 		return nil, err
 	}
-	return (*adpt).Patch(path, bytes.NewReader(body), logger)
+	return (*adpt).Patch(ctxt, path, bytes.NewReader(body), logger)
 }
 
 type patch struct {

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
@@ -21,7 +22,7 @@ func init() {
 func cliSchemaList(topCmd *kingpin.CmdClause) {
 	cmd := &schema.ListRequest{}
 	topCmd.Command("list", "List all aspect schemas").Action(func(_ *kingpin.ParseContext) error {
-		if pyld, err := schema.ListRaw(cmd, Adapter(), Logger()); err != nil {
+		if pyld, err := schema.ListRaw(context.Background(), cmd, Adapter(), Logger()); err != nil {
 			return err
 		} else {
 			return adapter.ReplyPrinter(pyld, *useYaml)
@@ -32,10 +33,10 @@ func cliSchemaList(topCmd *kingpin.CmdClause) {
 /**** CREATE ****/
 
 type SchemaCreate struct {
-	Id         string `json:"id"`
-	Name       string `json:"name"`
-	SchemaFile string `json:"-"`
-	SchemaFromStdin bool           `json:"-"`
+	Id              string `json:"id"`
+	Name            string `json:"name"`
+	SchemaFile      string `json:"-"`
+	SchemaFromStdin bool   `json:"-"`
 }
 
 func cliSchemaCreate(topCmd *kingpin.CmdClause) {
@@ -44,7 +45,7 @@ func cliSchemaCreate(topCmd *kingpin.CmdClause) {
 		cmd := schema.CreateRequest{
 			Id: r.Id, Name: r.Name, Schema: loadObjFromFile(r.SchemaFile),
 		}
-		if _, err := schema.CreateRaw(&cmd, Adapter(), Logger()); err == nil {
+		if _, err := schema.CreateRaw(context.Background(), &cmd, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully create schema '%s'\n", r.Id)
 			return nil
 		} else {
@@ -76,11 +77,11 @@ func cliAddSchemaCUFlags(r *SchemaCreate, c *kingpin.CmdClause) {
 func cliSchemaRead(topCmd *kingpin.CmdClause) {
 	r := &schema.ReadRequest{}
 	c := topCmd.Command("read", "Read the content of a schema").Action(func(_ *kingpin.ParseContext) error {
-		if pyld, err := schema.ReadRaw(r, Adapter(), Logger()); err != nil {
+		if pyld, err := schema.ReadRaw(context.Background(), r, Adapter(), Logger()); err != nil {
 			return err
 		} else {
 			return adapter.ReplyPrinter(pyld, *useYaml)
-		}	
+		}
 	})
 	c.Flag("id", "Record ID").
 		Short('i').
@@ -96,7 +97,7 @@ func cliSchemaUpdate(topCmd *kingpin.CmdClause) {
 		cmd := schema.UpdateRequest{
 			Id: r.Id, Name: r.Name, Schema: loadSchema(r),
 		}
-		if _, err := schema.UpdateRaw(&cmd, Adapter(), Logger()); err == nil {
+		if _, err := schema.UpdateRaw(context.Background(), &cmd, Adapter(), Logger()); err == nil {
 			fmt.Printf("Successfully updated schema '%s'\n", r.Id)
 			return nil
 		} else {

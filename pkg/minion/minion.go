@@ -2,10 +2,11 @@ package minion
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 
 	"github.com/maxott/magda-cli/pkg/adapter"
-	log "go.uber.org/zap"	
+	log "go.uber.org/zap"
 )
 
 /**** LIST ****/
@@ -13,9 +14,9 @@ import (
 type ListRequest struct {
 }
 
-func ListRaw(cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func ListRaw(ctxt context.Context, cmd *ListRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := minionPath(nil, adpt)
-	return (*adpt).Get(path, logger)
+	return (*adpt).Get(ctxt, path, logger)
 }
 
 /**** CREATE ****/
@@ -97,7 +98,7 @@ type createConfig struct {
 	Dereference              bool     `json:"dereference"`
 }
 
-func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func CreateRaw(ctxt context.Context, cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	config := createConfig{
 		Aspects:                  cmd.Aspects,
 		OptionalAspects:          cmd.OptionalAspects,
@@ -128,7 +129,7 @@ func CreateRaw(cmd *CreateRequest, adpt *adapter.Adapter, logger *log.Logger) (a
 	} else {
 		path := minionPath(nil, adpt)
 		logger.Info("POTS minion", log.ByteString("body", body))
-		return (*adpt).Post(path, bytes.NewReader(body), logger)
+		return (*adpt).Post(ctxt, path, bytes.NewReader(body), logger)
 	}
 }
 
@@ -180,9 +181,9 @@ type DeleteRequest struct {
 	Id string
 }
 
-func DeleteRaw(cmd *DeleteRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+func DeleteRaw(ctxt context.Context, cmd *DeleteRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
 	path := minionPath(&cmd.Id, adpt)
-	return (*adpt).Delete(path, logger)
+	return (*adpt).Delete(ctxt, path, logger)
 }
 
 /**** Utils ****/
