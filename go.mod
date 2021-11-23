@@ -8,7 +8,7 @@ require (
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0
 	go.uber.org/zap v1.19.0
-	golang.org/x/tools v0.0.0-20191112195655-aa38f8e97acc // indirect
+	golang.org/x/tools/gopls v0.7.3 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/yaml.v2 v2.3.0
 )

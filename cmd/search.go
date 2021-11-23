@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/maxott/magda-cli/pkg/adapter"
 	"github.com/maxott/magda-cli/pkg/search"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -16,7 +18,7 @@ func init() {
 func cliSearchDatasets(topCmd *kingpin.CmdClause) {
 	r := &search.DatasetRequest{Offset: -1, Limit: -1}
 	c := topCmd.Command("datasets", "Fulltext search dataset datasets").Action(func(_ *kingpin.ParseContext) error {
-		if pyld, err := search.DatasetRaw(r, Adapter(), Logger()); err != nil {
+		if pyld, err := search.DatasetRaw(context.Background(), r, Adapter(), Logger()); err != nil {
 			return err
 		} else {
 			return adapter.ReplyPrinter(pyld, *useYaml)

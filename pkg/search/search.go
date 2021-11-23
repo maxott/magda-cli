@@ -3,6 +3,7 @@ package search
 import (
 	"encoding/json"
 	//"fmt"
+	"context"
 	"net/url"
 	"strconv"
 	"strings"
@@ -21,26 +22,26 @@ type DatasetRequest struct {
 }
 
 type DatasetResult struct {
-	HitCount       int   `json:"hitCount"`
-	DataSets       []struct {
-		Title					string	`json:"title"`
-		Description				string	`json:"description"`
-		Issued					string `json:"issued"`
-		Modified				string `json:"modified"`
-		Languages				[]string `json:"languages"`
-		Publisher				string `json:"publisher"`
-		AccrualPeriodicity			string `json:"accrualPeriodicity"`
-		AccrualPeriodicityRecurrenceRule	string `json:"accrualPeriodicityRecurrenceRule"`
-		Themes					[]string `json:"themes"`
-		Keywords				[]string `json:"keywords"`
-		ContactPoint				string `json:"contactPoint"`
-		LandingPage				string `json:"landingPage"`
-		DefaultLicense				string `json:"defaultLicense"`
+	HitCount int `json:"hitCount"`
+	DataSets []struct {
+		Title                            string   `json:"title"`
+		Description                      string   `json:"description"`
+		Issued                           string   `json:"issued"`
+		Modified                         string   `json:"modified"`
+		Languages                        []string `json:"languages"`
+		Publisher                        string   `json:"publisher"`
+		AccrualPeriodicity               string   `json:"accrualPeriodicity"`
+		AccrualPeriodicityRecurrenceRule string   `json:"accrualPeriodicityRecurrenceRule"`
+		Themes                           []string `json:"themes"`
+		Keywords                         []string `json:"keywords"`
+		ContactPoint                     string   `json:"contactPoint"`
+		LandingPage                      string   `json:"landingPage"`
+		DefaultLicense                   string   `json:"defaultLicense"`
 	} `json:"dataSets"`
 }
 
-func Dataset(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) (DatasetResult, error) {
-	pyl, err := DatasetRaw(cmd, adpt, logger)
+func Dataset(ctxt context.Context, cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) (DatasetResult, error) {
+	pyl, err := DatasetRaw(ctxt, cmd, adpt, logger)
 	if err != nil {
 		return DatasetResult{}, err
 	}
@@ -49,8 +50,8 @@ func Dataset(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) (Da
 	return res, nil
 }
 
-func DatasetRaw(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
-	path := recordPath(nil, adpt)
+func DatasetRaw(ctxt context.Context, cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) (adapter.Payload, error) {
+	path := searchPath(nil, adpt)
 
 	q := []string{}
 
@@ -66,17 +67,17 @@ func DatasetRaw(cmd *DatasetRequest, adpt *adapter.Adapter, logger *log.Logger) 
 	if cmd.Publisher != "" {
 		q = append(q, "publisher="+url.QueryEscape(cmd.Publisher))
 	}
-	
+
 	if len(q) > 0 {
 		path = path + "?" + strings.Join(q, "&")
 	}
 
-  return (*adpt).Get(path, logger)
+	return (*adpt).Get(ctxt, path, logger)
 }
 
 /**** UTILS ****/
 
-func recordPath(id *string, adpt *adapter.Adapter) string {
+func searchPath(id *string, adpt *adapter.Adapter) string {
 	path := "/api/v0/search/datasets"
 	if (*adpt).SkipGateway() {
 		path = "/v0/datasets"
