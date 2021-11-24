@@ -79,9 +79,6 @@ func DatasetRaw(ctxt context.Context, cmd *DatasetRequest, adpt *adapter.Adapter
 
 func searchPath(id *string, adpt *adapter.Adapter) string {
 	path := "/api/v0/search/datasets"
-	if (*adpt).SkipGateway() {
-		path = "/v0/datasets"
-	}
 	if id != nil {
 		path = path + "/" + *id
 	}
