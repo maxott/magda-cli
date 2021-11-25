@@ -2,9 +2,9 @@
 package cmd
 
 import (
-	"os"
 	"github.com/maxott/magda-cli/pkg/adapter"
 	"gopkg.in/alecthomas/kingpin.v2"
+	"os"
 
 	log "go.uber.org/zap"
 )
@@ -22,7 +22,7 @@ var (
 	jwtSecret = app.Flag("jwt-secret", "Secret used for creating JWT token for inernal comms [MAGDA_JWT_SECRET]").Envar("MAGDA_JWT_SECRET").String()
 	jwtUser   = app.Flag("jwt-user-id", "User ID for creating JWT token for inernal comms [MAGDA_JWT_USER_ID]").Envar("MAGDA_JWT_USER_ID").String()
 
-	useYaml        = app.Flag("use-yaml", "Use and assume data formated in YAML [MAGDA_USE_YAML]").Short('y').Envar("MAGDA_USE_YAML").Bool()
+	useYaml = app.Flag("use-yaml", "Use and assume data formated in YAML [MAGDA_USE_YAML]").Short('y').Envar("MAGDA_USE_YAML").Bool()
 
 	logger *log.Logger
 )
@@ -44,7 +44,7 @@ func Logger() *log.Logger {
 	return logger
 }
 
-func SetLogger(l *log.Logger)  {
+func SetLogger(l *log.Logger) {
 	logger = l
 }
 
